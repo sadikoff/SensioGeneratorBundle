@@ -12,7 +12,7 @@
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Generates a Command inside a bundle.
@@ -28,10 +28,10 @@ class CommandGenerator extends Generator
         $this->filesystem = $filesystem;
     }
 
-    public function generate(BundleInterface $bundle, $name)
+    public function generate(KernelInterface $kernel, $name)
     {
-        $bundleDir = $bundle->getPath();
-        $commandDir = $bundleDir.'/Command';
+        $rootDir = $kernel->getRootdir();
+        $commandDir = $rootDir.'/Command';
         self::mkdir($commandDir);
 
         $commandClassName = $this->classify($name).'Command';
@@ -40,8 +40,10 @@ class CommandGenerator extends Generator
             throw new \RuntimeException(sprintf('Command "%s" already exists', $name));
         }
 
+        $kernelReflection = new \ReflectionClass($kernel);
+
         $parameters = array(
-            'namespace' => $bundle->getNamespace(),
+            'namespace' => $kernelReflection->getNamespaceName(),
             'class_name' => $commandClassName,
             'name' => $name,
         );

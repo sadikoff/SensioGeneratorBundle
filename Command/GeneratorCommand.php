@@ -11,7 +11,7 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Command;
 
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Sensio\Bundle\GeneratorBundle\Generator\Generator;
 use Sensio\Bundle\GeneratorBundle\Command\Helper\QuestionHelper;
@@ -36,25 +36,21 @@ abstract class GeneratorCommand extends ContainerAwareCommand
 
     abstract protected function createGenerator();
 
-    protected function getGenerator(BundleInterface $bundle = null)
+    protected function getGenerator(KernelInterface $kernel = null)
     {
         if (null === $this->generator) {
             $this->generator = $this->createGenerator();
-            $this->generator->setSkeletonDirs($this->getSkeletonDirs($bundle));
+            $this->generator->setSkeletonDirs($this->getSkeletonDirs($kernel));
         }
 
         return $this->generator;
     }
 
-    protected function getSkeletonDirs(BundleInterface $bundle = null)
+    protected function getSkeletonDirs(KernelInterface $kernel = null)
     {
         $skeletonDirs = array();
 
-        if (isset($bundle) && is_dir($dir = $bundle->getPath().'/Resources/SensioGeneratorBundle/skeleton')) {
-            $skeletonDirs[] = $dir;
-        }
-
-        if (is_dir($dir = $this->getContainer()->get('kernel')->getRootdir().'/Resources/SensioGeneratorBundle/skeleton')) {
+        if (is_dir($dir = $kernel->getRootdir().'/Resources/SensioGeneratorBundle/skeleton')) {
             $skeletonDirs[] = $dir;
         }
 
