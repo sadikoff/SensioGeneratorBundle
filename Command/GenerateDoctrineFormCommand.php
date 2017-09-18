@@ -63,16 +63,18 @@ EOT
 
         /** @var KernelInterface $kernel */
         $kernel = $this->getContainer()->get('kernel');
-        //$rc = new \ReflectionClass($kernel);
+        $rc = new \ReflectionClass($kernel);
+
+        $doctrine = $this->getContainer()->get('doctrine');
 
         $entity = str_replace('/', '\\', $entity);
 
-        //$entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($rc->getNamespaceName()).'\\'.$entity;
-        $metadata = $this->getEntityMetadata($entity, $kernel->getRootDir().'/Entity');
+        $entityClass = $doctrine->getAliasNamespace($rc->getNamespaceName()).'\\'.$entity;
+        $metadata = $doctrine->getManager()->getClassMetadata($entityClass);
         /** @var DoctrineFormGenerator $generator */
         $generator = $this->getGenerator($kernel);
 
-        $generator->generate($kernel, $entity, $metadata[0]);
+        $generator->generate($kernel, $entity, $metadata);
 
         $output->writeln(sprintf(
             'The new %s.php class file has been created under %s.',
