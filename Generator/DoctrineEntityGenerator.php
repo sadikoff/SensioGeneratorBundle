@@ -107,7 +107,7 @@ class DoctrineEntityGenerator extends Generator
             self::dump($mappingPath, $mappingCode);
         }
 
-        $repositoryPath = $kernel->getRootDir().'/Repository/'.$entityClass.'Repository';
+        $repositoryPath = $kernel->getRootDir().'/Repository/'.$entity.'Repository.php';
         $repositoryCode = $this->getRepositoryGenerator()->generateEntityRepositoryClass($class->customRepositoryClassName);
 
         self::mkdir(dirname($repositoryPath));
