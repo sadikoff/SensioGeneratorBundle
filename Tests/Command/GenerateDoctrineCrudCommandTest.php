@@ -26,7 +26,7 @@ class GenerateDoctrineCrudCommandTest extends GenerateCommandTest
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getBundle(), $entity, $this->getDoctrineMetadata(), $format, $prefix, $withWrite)
+            ->with($this->getKernel(), $entity, $this->getDoctrineMetadata(), $format, $prefix, $withWrite)
         ;
 
         $tester = new CommandTester($command = $this->getCommand($generator));
@@ -37,16 +37,12 @@ class GenerateDoctrineCrudCommandTest extends GenerateCommandTest
     public function getInteractiveCommandData()
     {
         return array(
-            array(array(), "AcmeBlogBundle:Blog/Post\n", array('Blog\\Post', 'annotation', 'blog_post', false)),
-            array(array(), "AcmeBlogBundle:Blog/Post\ny\nyml\nfoobar\n", array('Blog\\Post', 'yml', 'foobar', true)),
-            array(array(), "AcmeBlogBundle:Blog/Post\ny\nyml\n/foobar\n", array('Blog\\Post', 'yml', 'foobar', true)),
-            array(array('entity' => 'AcmeBlogBundle:Blog/Post'), "\ny\nyml\nfoobar\n", array('Blog\\Post', 'yml', 'foobar', true)),
-            array(array('entity' => 'AcmeBlogBundle:Blog/Post'), '', array('Blog\\Post', 'annotation', 'blog_post', false)),
-            array(array('entity' => 'AcmeBlogBundle:Blog/Post', '--format' => 'yml', '--route-prefix' => 'foo', '--with-write' => true), '', array('Blog\\Post', 'yml', 'foo', true)),
-            // Deprecated, to be removed in 4.0
-            array(array('--entity' => 'AcmeBlogBundle:Blog/Post'), '', array('Blog\\Post', 'annotation', 'blog_post', false)),
-            array(array('--entity' => 'AcmeBlogBundle:Blog/Post', '--format' => 'yml', '--route-prefix' => 'foo', '--with-write' => true), '', array('Blog\\Post', 'yml', 'foo', true)),
-
+            array(array(), "Blog/Post\n", array('Blog\\Post', 'annotation', 'blog_post', false)),
+            array(array(), "Blog/Post\ny\nyml\nfoobar\n", array('Blog\\Post', 'yaml', 'foobar', true)),
+            array(array(), "Blog/Post\ny\nyml\n/foobar\n", array('Blog\\Post', 'yaml', 'foobar', true)),
+            array(array('entity' => 'Blog/Post'), "\ny\nyml\nfoobar\n", array('Blog\\Post', 'yaml', 'foobar', true)),
+            array(array('entity' => 'Blog/Post'), '', array('Blog\\Post', 'annotation', 'blog_post', false)),
+            array(array('entity' => 'Blog/Post', '--format' => 'yml', '--route-prefix' => 'foo', '--with-write' => true), '', array('Blog\\Post', 'yaml', 'foo', true)),
         );
     }
 
@@ -61,7 +57,7 @@ class GenerateDoctrineCrudCommandTest extends GenerateCommandTest
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getBundle(), $entity, $this->getDoctrineMetadata(), $format, $prefix, $withWrite)
+            ->with($this->getKernel(), $entity, $this->getDoctrineMetadata(), $format, $prefix, $withWrite)
         ;
 
         $tester = new CommandTester($this->getCommand($generator));
@@ -71,11 +67,8 @@ class GenerateDoctrineCrudCommandTest extends GenerateCommandTest
     public function getNonInteractiveCommandData()
     {
         return array(
-            array(array('entity' => 'AcmeBlogBundle:Blog/Post'), array('Blog\\Post', 'annotation', 'blog_post', false)),
-            array(array('entity' => 'AcmeBlogBundle:Blog/Post', '--format' => 'yml', '--route-prefix' => 'foo', '--with-write' => true), array('Blog\\Post', 'yml', 'foo', true)),
-            // Deprecated, to be removed in 4.0
-            array(array('--entity' => 'AcmeBlogBundle:Blog/Post'), array('Blog\\Post', 'annotation', 'blog_post', false)),
-            array(array('--entity' => 'AcmeBlogBundle:Blog/Post', '--format' => 'yml', '--route-prefix' => 'foo', '--with-write' => true), array('Blog\\Post', 'yml', 'foo', true)),
+            array(array('entity' => 'Blog/Post'), array('Blog\\Post', 'annotation', 'blog_post', false)),
+            array(array('entity' => 'Blog/Post', '--format' => 'yml', '--route-prefix' => 'foo', '--with-write' => true), array('Blog\\Post', 'yaml', 'foo', true)),
         );
     }
 
@@ -93,7 +86,7 @@ DATA;
         file_put_contents($rootDir.'/config/routing.yml', $routing);
 
         $options = array();
-        $input = "AcmeBlogBundle:Blog/Post\ny\nannotation\n/foobar\n";
+        $input = "Blog/Post\ny\nannotation\n/foobar\n";
         $expected = array('Blog\\Post', 'annotation', 'foobar', true);
 
         list($entity, $format, $prefix, $withWrite) = $expected;
@@ -102,7 +95,7 @@ DATA;
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getBundle(), $entity, $this->getDoctrineMetadata(), $format, $prefix, $withWrite)
+            ->with($this->getKernel(), $entity, $this->getDoctrineMetadata(), $format, $prefix, $withWrite)
         ;
 
         $tester = new CommandTester($command = $this->getCommand($generator));
@@ -118,16 +111,16 @@ DATA;
 
         $routing = <<<DATA
 acme_blog:
-    resource: "@AcmeBlogBundle/Controller/"
+    resource: "../src/Controller/"
     type:     annotation
 DATA;
 
         @mkdir($rootDir.'/config', 0777, true);
-        file_put_contents($rootDir.'/config/routing.yml', $routing);
+        file_put_contents($rootDir.'/config/routes.yaml', $routing);
 
         $options = array();
-        $input = "AcmeBlogBundle:Blog/Post\ny\nyml\n/foobar\n";
-        $expected = array('Blog\\Post', 'yml', 'foobar', true);
+        $input = "Blog/Post\ny\nyml\n/foobar\n";
+        $expected = array('Blog\\Post', 'yaml', 'foobar', true);
 
         list($entity, $format, $prefix, $withWrite) = $expected;
 
@@ -135,14 +128,14 @@ DATA;
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getBundle(), $entity, $this->getDoctrineMetadata(), $format, $prefix, $withWrite)
+            ->with($this->getKernel(), $entity, $this->getDoctrineMetadata(), $format, $prefix, $withWrite)
         ;
 
         $tester = new CommandTester($command = $this->getCommand($generator));
         $this->setInputs($tester, $command, $input);
         $tester->execute($options);
 
-        $this->assertEquals($routing, file_get_contents($rootDir.'/config/routing.yml'));
+        $this->assertEquals($routing, file_get_contents($rootDir.'/config/routes.yaml'));
     }
 
     public function testAddACrudWithOneAlreadyDefined()
@@ -151,15 +144,15 @@ DATA;
 
         $routing = <<<DATA
 acme_blog:
-    resource: "@AcmeBlogBundle/Controller/OtherController.php"
+    resource: "../src/Controller/OtherController.php"
     type:     annotation
 DATA;
 
         @mkdir($rootDir.'/config', 0777, true);
-        file_put_contents($rootDir.'/config/routing.yml', $routing);
+        file_put_contents($rootDir.'/config/routes.yaml', $routing);
 
         $options = array();
-        $input = "AcmeBlogBundle:Blog/Post\ny\nannotation\n/foobar\n";
+        $input = "Blog/Post\ny\nannotation\n/foobar\n";
         $expected = array('Blog\\Post', 'annotation', 'foobar', true);
 
         list($entity, $format, $prefix, $withWrite) = $expected;
@@ -168,16 +161,16 @@ DATA;
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getBundle(), $entity, $this->getDoctrineMetadata(), $format, $prefix, $withWrite)
+            ->with($this->getKernel(), $entity, $this->getDoctrineMetadata(), $format, $prefix, $withWrite)
         ;
 
         $tester = new CommandTester($command = $this->getCommand($generator));
         $this->setInputs($tester, $command, $input);
         $tester->execute($options);
 
-        $expected = '@AcmeBlogBundle/Controller/PostController.php';
+        $expected = '../src/Controller/PostController.php';
 
-        $this->assertContains($expected, file_get_contents($rootDir.'/config/routing.yml'));
+        $this->assertContains($expected, file_get_contents($rootDir.'/config/routes.yaml'));
     }
 
     protected function getCommand($generator)
@@ -232,18 +225,6 @@ DATA;
         ;
     }
 
-    protected function getBundle()
-    {
-        $bundle = parent::getBundle();
-        $bundle
-            ->expects($this->any())
-            ->method('getName')
-            ->will($this->returnValue('AcmeBlogBundle'))
-        ;
-
-        return $bundle;
-    }
-
     protected function getContainer()
     {
         $container = parent::getContainer();
@@ -259,7 +240,7 @@ DATA;
         $cache
             ->expects($this->any())
             ->method('getAllClassNames')
-            ->will($this->returnValue(array('Acme\Bundle\BlogBundle\Entity\Post')))
+            ->will($this->returnValue(array('App\Entity\Post')))
         ;
 
         $configuration = $this->getMockBuilder('Doctrine\ORM\Configuration')->getMock();
@@ -272,7 +253,7 @@ DATA;
         $configuration
             ->expects($this->any())
             ->method('getEntityNamespaces')
-            ->will($this->returnValue(array('AcmeBlogBundle' => 'Acme\Bundle\BlogBundle\Entity')))
+            ->will($this->returnValue(array('App' => 'App\Entity')))
         ;
 
         $manager = $this->getMockBuilder('Doctrine\ORM\EntityManagerInterface')->getMock();
@@ -286,7 +267,7 @@ DATA;
         $registry
             ->expects($this->any())
             ->method('getAliasNamespace')
-            ->will($this->returnValue('Acme\Bundle\BlogBundle\Entity\Blog\Post'))
+            ->will($this->returnValue('App\Entity\Blog\Post'))
         ;
 
         $registry

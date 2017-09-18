@@ -13,7 +13,7 @@ $collection = new RouteCollection();
 {% if 'index' in actions %}
 $collection->add('{{ route_name_prefix }}_index', new Route(
     '/',
-    array('_controller' => '{{ bundle }}:{{ entity }}:index'),
+    array('_controller' => '{{ entity }}:index'),
     array(),
     array(),
     '',
@@ -25,7 +25,7 @@ $collection->add('{{ route_name_prefix }}_index', new Route(
 {% if 'show' in actions %}
 $collection->add('{{ route_name_prefix }}_show', new Route(
     '/{{ '{' ~ identifier ~ '}' }}/show',
-    array('_controller' => '{{ bundle }}:{{ entity }}:show'),
+    array('_controller' => '{{ entity }}:show'),
     array(),
     array(),
     '',
@@ -37,7 +37,7 @@ $collection->add('{{ route_name_prefix }}_show', new Route(
 {% if 'new' in actions %}
 $collection->add('{{ route_name_prefix }}_new', new Route(
     '/new',
-    array('_controller' => '{{ bundle }}:{{ entity }}:new'),
+    array('_controller' => '{{ entity }}:new'),
     array(),
     array(),
     '',
@@ -49,7 +49,7 @@ $collection->add('{{ route_name_prefix }}_new', new Route(
 {% if 'edit' in actions %}
 $collection->add('{{ route_name_prefix }}_edit', new Route(
     '/{{ '{' ~ identifier ~ '}' }}/edit',
-    array('_controller' => '{{ bundle }}:{{ entity }}:edit'),
+    array('_controller' => '{{ entity }}:edit'),
     array(),
     array(),
     '',
@@ -61,7 +61,7 @@ $collection->add('{{ route_name_prefix }}_edit', new Route(
 {% if 'delete' in actions %}
 $collection->add('{{ route_name_prefix }}_delete', new Route(
     '/{{ '{' ~ identifier ~ '}' }}/delete',
-    array('_controller' => '{{ bundle }}:{{ entity }}:delete'),
+    array('_controller' => '{{ entity }}:delete'),
     array(),
     array(),
     '',

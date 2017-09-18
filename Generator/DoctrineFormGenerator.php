@@ -12,7 +12,7 @@
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 
 /**
@@ -50,18 +50,18 @@ class DoctrineFormGenerator extends Generator
     /**
      * Generates the entity form class.
      *
-     * @param BundleInterface   $bundle         The bundle in which to create the class
+     * @param KernelInterface   $kernel         The bundle in which to create the class
      * @param string            $entity         The entity relative class name
      * @param ClassMetadataInfo $metadata       The entity metadata class
      * @param bool              $forceOverwrite If true, remove any existing form class before generating it again
      */
-    public function generate(BundleInterface $bundle, $entity, ClassMetadataInfo $metadata, $forceOverwrite = false)
+    public function generate(KernelInterface $kernel, $entity, ClassMetadataInfo $metadata, $forceOverwrite = false)
     {
         $parts = explode('\\', $entity);
         $entityClass = array_pop($parts);
 
         $this->className = $entityClass.'Type';
-        $dirPath = $bundle->getPath().'/Form';
+        $dirPath = $kernel->getRootDir().'/Form';
         $this->classPath = $dirPath.'/'.str_replace('\\', '/', $entity).'Type.php';
 
         if (!$forceOverwrite && file_exists($this->classPath)) {
@@ -75,14 +75,15 @@ class DoctrineFormGenerator extends Generator
         $parts = explode('\\', $entity);
         array_pop($parts);
 
+        $rc = new \ReflectionClass($kernel);
+
         $this->renderFile('form/FormType.php.twig', $this->classPath, array(
             'fields' => $this->getFieldsFromMetadata($metadata),
-            'namespace' => $bundle->getNamespace(),
+            'namespace' => $rc->getNamespaceName(),
             'entity_namespace' => implode('\\', $parts),
             'entity_class' => $entityClass,
-            'bundle' => $bundle->getName(),
             'form_class' => $this->className,
-            'form_type_name' => strtolower(str_replace('\\', '_', $bundle->getNamespace()).($parts ? '_' : '').implode('_', $parts).'_'.substr($this->className, 0, -4)),
+            'form_type_name' => strtolower(str_replace('\\', '_', $rc->getNamespaceName()).($parts ? '_' : '').implode('_', $parts).'_'.substr($this->className, 0, -4)),
             // BC with Symfony 2.7
             'get_name_required' => !method_exists('Symfony\Component\Form\AbstractType', 'getBlockPrefix'),
         ));

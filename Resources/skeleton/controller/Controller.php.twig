@@ -1,6 +1,6 @@
 <?php
 
-namespace {{ namespace }}\Controller;
+namespace {{ namespace }}\Controller{{ sub_namespace ? '\\' ~ sub_namespace : '' }};
 
 {% block use_statements %}
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;

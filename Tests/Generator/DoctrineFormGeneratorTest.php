@@ -81,10 +81,6 @@ class DoctrineFormGeneratorTest extends GeneratorTest
         $generator = new DoctrineFormGenerator($this->filesystem);
         $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
 
-        $bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $bundle->expects($this->any())->method('getPath')->will($this->returnValue($this->tmpDir));
-        $bundle->expects($this->any())->method('getNamespace')->will($this->returnValue('Foo\BarBundle'));
-
         $metadata = $this->getMockBuilder('Doctrine\ORM\Mapping\ClassMetadataInfo')->disableOriginalConstructor()->getMock();
         $metadata->identifier = array('id');
         $metadata->fieldMappings = array(
@@ -95,7 +91,7 @@ class DoctrineFormGeneratorTest extends GeneratorTest
         );
         $metadata->associationMappings = $metadata->fieldMappings;
 
-        $generator->generate($bundle, 'Post', $metadata, $overwrite);
+        $generator->generate($this->getKernel(), 'Post', $metadata, $overwrite);
     }
 
     private function generateSubNamespacedEntityForm($overwrite)
@@ -103,9 +99,6 @@ class DoctrineFormGeneratorTest extends GeneratorTest
         $generator = new DoctrineFormGenerator($this->filesystem);
         $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
 
-        $bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $bundle->expects($this->any())->method('getPath')->will($this->returnValue($this->tmpDir));
-        $bundle->expects($this->any())->method('getNamespace')->will($this->returnValue('Foo\BarBundle'));
 
         $metadata = $this->getMockBuilder('Doctrine\ORM\Mapping\ClassMetadataInfo')->disableOriginalConstructor()->getMock();
         $metadata->identifier = array('id');
@@ -117,6 +110,19 @@ class DoctrineFormGeneratorTest extends GeneratorTest
         );
         $metadata->associationMappings = $metadata->fieldMappings;
 
-        $generator->generate($bundle, 'Blog\Post', $metadata, $overwrite);
+        $generator->generate($this->getKernel(), 'Blog\Post', $metadata, $overwrite);
+    }
+
+    protected function getKernel()
+    {
+
+        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\KernelInterface')->getMock();
+        $kernel
+            ->expects($this->any())
+            ->method('getRootDir')
+            ->will($this->returnValue($this->tmpDir))
+        ;
+
+        return $kernel;
     }
 }

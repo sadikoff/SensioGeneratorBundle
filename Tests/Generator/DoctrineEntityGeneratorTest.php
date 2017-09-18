@@ -143,12 +143,12 @@ class DoctrineEntityGeneratorTest extends GeneratorTest
 
     protected function generate($format)
     {
-        $this->getGenerator()->generate($this->getBundle(), 'Foo', $format, $this->getFields());
+        $this->getGenerator()->generate($this->getKernel(), 'Foo', $format, $this->getFields());
     }
 
     protected function generateSubNamespaced($format)
     {
-        $this->getGenerator()->generate($this->getBundle(), 'Sub\Foo', $format, $this->getFields());
+        $this->getGenerator()->generate($this->getKernel(), 'Sub\Foo', $format, $this->getFields());
     }
 
     protected function getGenerator()
@@ -159,14 +159,17 @@ class DoctrineEntityGeneratorTest extends GeneratorTest
         return $generator;
     }
 
-    protected function getBundle()
+    protected function getKernel()
     {
-        $bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $bundle->expects($this->any())->method('getPath')->will($this->returnValue($this->tmpDir));
-        $bundle->expects($this->any())->method('getName')->will($this->returnValue('FooBarBundle'));
-        $bundle->expects($this->any())->method('getNamespace')->will($this->returnValue('Foo\BarBundle'));
 
-        return $bundle;
+        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\KernelInterface')->getMock();
+        $kernel
+            ->expects($this->any())
+            ->method('getRootDir')
+            ->will($this->returnValue($this->tmpDir))
+        ;
+
+        return $kernel;
     }
 
     protected function getFields()

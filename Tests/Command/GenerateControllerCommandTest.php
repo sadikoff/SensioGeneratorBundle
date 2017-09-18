@@ -30,7 +30,7 @@ class GenerateControllerCommandTest extends GenerateCommandTest
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getBundle(), $controller, $routeFormat, $templateFormat, $actions)
+            ->with($this->getKernel(), $controller, $routeFormat, $templateFormat, $actions)
         ;
 
         $tester = new CommandTester($command = $this->getCommand($generator));
@@ -41,32 +41,32 @@ class GenerateControllerCommandTest extends GenerateCommandTest
     public function getInteractiveCommandData()
     {
         return array(
-            array(array(), "AcmeBlogBundle:Post\n", array('Post', 'annotation', 'twig', array())),
-            array(array('--controller' => 'AcmeBlogBundle:Post'), '', array('Post', 'annotation', 'twig', array())),
+            array(array(), "Post\n", array('Post', 'annotation', 'twig', array())),
+            array(array('--controller' => 'Post'), '', array('Post', 'annotation', 'twig', array())),
 
-            array(array(), "AcmeBlogBundle:Post\nyml\nphp\n", array('Post', 'yml', 'php', array())),
+            array(array(), "Post\nyaml\nphp\n", array('Post', 'yaml', 'php', array())),
 
-            array(array(), "AcmeBlogBundle:Post\nyml\nphp\nshowAction\n\n\ngetListAction\n/_getlist/{max}\nAcmeBlogBundle:Lists:post.html.php\n", array('Post', 'yml', 'php', array(
+            array(array(), "Post\nyaml\nphp\nshowAction\n\n\ngetListAction\n/_getlist/{max}\nLists:post.html.php\n", array('Post', 'yaml', 'php', array(
                 'showAction' => array(
                     'name' => 'showAction',
                     'route' => '/show',
                     'placeholders' => array(),
-                    'template' => 'AcmeBlogBundle:Post:show.html.php',
+                    'template' => 'Post:show.html.php',
                 ),
                 'getListAction' => array(
                     'name' => 'getListAction',
                     'route' => '/_getlist/{max}',
                     'placeholders' => array('max'),
-                    'template' => 'AcmeBlogBundle:Lists:post.html.php',
+                    'template' => 'Lists:post.html.php',
                 ),
             ))),
 
-            array(array('--route-format' => 'xml', '--template-format' => 'php', '--actions' => array('showAction:/{slug}:AcmeBlogBundle:article.html.php')), 'AcmeBlogBundle:Post', array('Post', 'xml', 'php', array(
+            array(array('--route-format' => 'yaml', '--template-format' => 'php', '--actions' => array('showAction:/{slug}:article.html.php')), 'Post', array('Post', 'yaml', 'php', array(
                 'showAction' => array(
                     'name' => 'showAction',
                     'route' => '/{slug}',
                     'placeholders' => array('slug'),
-                    'template' => 'AcmeBlogBundle:article.html.php',
+                    'template' => 'article.html.php',
                 ),
             ))),
         );
@@ -83,7 +83,7 @@ class GenerateControllerCommandTest extends GenerateCommandTest
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getBundle(), $controller, $routeFormat, $templateFormat, $actions)
+            ->with($this->getKernel(), $controller, $routeFormat, $templateFormat, $actions)
         ;
 
         $tester = new CommandTester($command = $this->getCommand($generator));
@@ -93,9 +93,9 @@ class GenerateControllerCommandTest extends GenerateCommandTest
     public function getNonInteractiveCommandData()
     {
         return array(
-            array(array('--controller' => 'AcmeBlogBundle:Post'), array('Post', 'annotation', 'twig', array())),
-            array(array('--controller' => 'AcmeBlogBundle:Post', '--route-format' => 'yml', '--template-format' => 'php'), array('Post', 'yml', 'php', array())),
-            array(array('--controller' => 'AcmeBlogBundle:Post', '--actions' => array('showAction getListAction:/_getlist/{max}:AcmeBlogBundle:List:post.html.twig createAction:/admin/create')), array('Post', 'annotation', 'twig', array(
+            array(array('--controller' => 'Post'), array('Post', 'annotation', 'twig', array())),
+            array(array('--controller' => 'Post', '--route-format' => 'yaml', '--template-format' => 'php'), array('Post', 'yaml', 'php', array())),
+            array(array('--controller' => 'Post', '--actions' => array('showAction getListAction:/_getlist/{max}:List:post.html.twig createAction:/admin/create')), array('Post', 'annotation', 'twig', array(
                 'showAction' => array(
                     'name' => 'showAction',
                     'route' => '/show',
@@ -106,7 +106,7 @@ class GenerateControllerCommandTest extends GenerateCommandTest
                     'name' => 'getListAction',
                     'route' => '/_getlist/{max}',
                     'placeholders' => array('max'),
-                    'template' => 'AcmeBlogBundle:List:post.html.twig',
+                    'template' => 'List:post.html.twig',
                 ),
                 'createAction' => array(
                     'name' => 'createAction',
@@ -115,7 +115,7 @@ class GenerateControllerCommandTest extends GenerateCommandTest
                     'template' => 'default',
                 ),
             ))),
-            array(array('--controller' => 'AcmeBlogBundle:Post', '--route-format' => 'xml', '--template-format' => 'php', '--actions' => array('showAction::')), array('Post', 'xml', 'php', array(
+            array(array('--controller' => 'Post', '--route-format' => 'yaml', '--template-format' => 'php', '--actions' => array('showAction::')), array('Post', 'yaml', 'php', array(
                 'showAction' => array(
                     'name' => 'showAction',
                     'route' => '/show',
@@ -173,24 +173,5 @@ class GenerateControllerCommandTest extends GenerateCommandTest
             ->setMethods(array('generate'))
             ->getMock()
         ;
-    }
-
-    protected function getBundle()
-    {
-        if (null == $this->bundle) {
-            $this->setBundle();
-        }
-
-        return $this->bundle;
-    }
-
-    protected function setBundle()
-    {
-        $bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $bundle->expects($this->any())->method('getPath')->will($this->returnValue(''));
-        $bundle->expects($this->any())->method('getName')->will($this->returnValue('FooBarBundle'));
-        $bundle->expects($this->any())->method('getNamespace')->will($this->returnValue('Foo\BarBundle'));
-
-        $this->bundle = $bundle;
     }
 }

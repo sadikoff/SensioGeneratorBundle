@@ -6,28 +6,28 @@
 
 {% block body %}
     <route id="{{ route_name_prefix }}_index" path="/" methods="GET">
-        <default key="_controller">{{ bundle }}:{{ entity }}:index</default>
+        <default key="_controller">{{ entity }}:index</default>
     </route>
 
     <route id="{{ route_name_prefix }}_show" path="/{{ '{' ~ identifier ~ '}' }}/show" methods="GET">
-        <default key="_controller">{{ bundle }}:{{ entity }}:show</default>
+        <default key="_controller">{{ entity }}:show</default>
     </route>
 
 {% if 'new' in actions %}
     <route id="{{ route_name_prefix }}_new" path="/new" methods="GET|POST">
-        <default key="_controller">{{ bundle }}:{{ entity }}:new</default>
+        <default key="_controller">{{ entity }}:new</default>
     </route>
 {% endif %}
 
 {% if 'edit' in actions %}
     <route id="{{ route_name_prefix }}_edit" path="/{{ '{' ~ identifier ~ '}' }}/edit" methods="GET|POST">
-        <default key="_controller">{{ bundle }}:{{ entity }}:edit</default>
+        <default key="_controller">{{ entity }}:edit</default>
     </route>
 {% endif %}
 
 {% if 'delete' in actions %}
     <route id="{{ route_name_prefix }}_delete" path="/{{ '{' ~ identifier ~ '}' }}/delete" methods="DELETE">
-        <default key="_controller">{{ bundle }}:{{ entity }}:delete</default>
+        <default key="_controller">{{ entity }}:delete</default>
     </route>
 {% endif %}
 {% endblock body %}
