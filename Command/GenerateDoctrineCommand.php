@@ -31,10 +31,10 @@ abstract class GenerateDoctrineCommand extends GeneratorCommand
         return array(substr($entity, 0, $pos), substr($entity, $pos + 1));
     }
 
-    protected function getEntityMetadata($entity)
+    protected function getEntityMetadata($entity, $path = null)
     {
         $factory = new DisconnectedMetadataFactory($this->getContainer()->get('doctrine'));
 
-        return $factory->getClassMetadata($entity)->getMetadata();
+        return $factory->getClassMetadata($entity, $path)->getMetadata();
     }
 }

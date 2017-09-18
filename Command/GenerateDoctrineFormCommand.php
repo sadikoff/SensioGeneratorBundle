@@ -68,7 +68,7 @@ EOT
         $entity = str_replace('/', '\\', $entity);
 
         $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($rc->getNamespaceName()).'\\'.$entity;
-        $metadata = $this->getEntityMetadata($entityClass);
+        $metadata = $this->getEntityMetadata($entityClass, $kernel->getRootDir().'/Entity');
         /** @var DoctrineFormGenerator $generator */
         $generator = $this->getGenerator($kernel);
 
