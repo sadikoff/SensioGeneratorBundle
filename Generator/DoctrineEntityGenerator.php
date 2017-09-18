@@ -30,12 +30,10 @@ use Doctrine\Common\Util\Inflector;
  */
 class DoctrineEntityGenerator extends Generator
 {
-    private $filesystem;
     private $registry;
 
-    public function __construct(Filesystem $filesystem, RegistryInterface $registry)
+    public function __construct(RegistryInterface $registry)
     {
-        $this->filesystem = $filesystem;
         $this->registry = $registry;
     }
 
@@ -85,7 +83,7 @@ class DoctrineEntityGenerator extends Generator
         } else {
             $cme = new ClassMetadataExporter();
             $exporter = $cme->getExporter('yml' == $format ? 'yaml' : $format);
-            $mappingPath = $kernel->getRootDir().'/Resources/config/doctrine/'.str_replace('\\', '.', $entity).'.orm.'.$format;
+            $mappingPath = $kernel->getRootDir().'/../config/doctrine/'.str_replace('\\', '.', $entity).'.orm.'.$format;
 
             if (file_exists($mappingPath)) {
                 throw new \RuntimeException(sprintf('Cannot generate entity when mapping "%s" already exists.', $mappingPath));
@@ -109,9 +107,11 @@ class DoctrineEntityGenerator extends Generator
             self::dump($mappingPath, $mappingCode);
         }
 
-        $path = $kernel->getRootDir();
-        $this->getRepositoryGenerator()->writeEntityRepositoryClass($class->customRepositoryClassName, $path);
-        $repositoryPath = $path.DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $class->customRepositoryClassName).'.php';
+        $repositoryPath = $kernel->getRootDir().'/Repository/'.$entityClass.'Repository';
+        $repositoryCode = $this->getRepositoryGenerator()->generateEntityRepositoryClass($class->customRepositoryClassName);
+
+        self::mkdir(dirname($repositoryPath));
+        self::dump($repositoryPath, $repositoryCode);
 
         return new EntityGeneratorResult($entityPath, $repositoryPath, $mappingPath);
     }

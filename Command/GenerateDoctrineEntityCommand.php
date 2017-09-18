@@ -42,29 +42,29 @@ class GenerateDoctrineEntityCommand extends GenerateDoctrineCommand
 The <info>%command.name%</info> task generates a new Doctrine
 entity inside a bundle:
 
-<info>php %command.full_name% AcmeBlogBundle:Blog/Post</info>
+<info>php %command.full_name% Blog/Post</info>
 
 The above command would initialize a new entity in the following entity
-namespace <info>Acme\BlogBundle\Entity\Blog\Post</info>.
+namespace <info>App\Entity\Blog\Post</info>.
 
 You can also optionally specify the fields you want to generate in the new
 entity:
 
-<info>php %command.full_name% AcmeBlogBundle:Blog/Post --fields="title:string(255) body:text"</info>
+<info>php %command.full_name% Blog/Post --fields="title:string(255) body:text"</info>
 
 By default, the command uses annotations for the mapping information; change it
 with <comment>--format</comment>:
 
-<info>php %command.full_name% AcmeBlogBundle:Blog/Post --format=yml</info>
+<info>php %command.full_name% Blog/Post --format=yml</info>
 
 To deactivate the interaction mode, simply use the <comment>--no-interaction</comment> option or its
 alias <comment>-n</comment>, without forgetting to pass all needed options:
 
-<info>php %command.full_name% AcmeBlogBundle:Blog/Post -n --format=annotation --fields="title:string(255) body:text"</info>
+<info>php %command.full_name% Blog/Post -n --format=annotation --fields="title:string(255) body:text"</info>
 
 This also has support for passing field specific attributes:
 
-<info>php %command.full_name% AcmeBlogBundle:Blog/Post -n --format=annotation --fields="title:string(length=255 nullable=true unique=true) body:text ranking:decimal(precision=10 scale=0)"</info>
+<info>php %command.full_name% Blog/Post -n --format=annotation --fields="title:string(length=255 nullable=true unique=true) body:text ranking:decimal(precision=10 scale=0)"</info>
 EOT
         );
     }
@@ -124,12 +124,9 @@ EOT
             '',
         ));
 
-        //$bundleNames = array_keys($this->getContainer()->get('kernel')->getBundles());
-
         while (true) {
             $question = new Question($questionHelper->getQuestion('The Entity shortcut name', $input->getArgument('entity')), $input->getArgument('entity'));
             $question->setValidator(array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateEntityName'));
-            //$question->setAutocompleterValues($bundleNames);
             $entity = $questionHelper->ask($input, $output, $question);
 
             $entity = str_replace('/', '\\', $entity);
@@ -395,6 +392,6 @@ EOT
 
     protected function createGenerator()
     {
-        return new DoctrineEntityGenerator($this->getContainer()->get('filesystem'), $this->getContainer()->get('doctrine'));
+        return new DoctrineEntityGenerator($this->getContainer()->get('doctrine'));
     }
 }
