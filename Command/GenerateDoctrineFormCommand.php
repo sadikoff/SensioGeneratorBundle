@@ -16,6 +16,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\Command;
 use Sensio\Bundle\GeneratorBundle\Generator\DoctrineFormGenerator;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Generates a form type class for a given Doctrine entity.
@@ -40,12 +41,11 @@ class GenerateDoctrineFormCommand extends GenerateDoctrineCommand
             ->setHelp(<<<EOT
 The <info>%command.name%</info> command generates a form class based on a Doctrine entity.
 
-<info>php %command.full_name% AcmeBlogBundle:Post</info>
+<info>php %command.full_name% Post</info>
 
 Every generated file is based on a template. There are default templates but they can be overridden by placing custom templates in one of the following locations, by order of priority:
 
-<info>BUNDLE_PATH/Resources/SensioGeneratorBundle/skeleton/form
-APP_PATH/Resources/SensioGeneratorBundle/skeleton/form</info>
+<info>APP_PATH/Resources/SensioGeneratorBundle/skeleton/form</info>
 
 You can check https://github.com/sensio/SensioGeneratorBundle/tree/master/Resources/skeleton
 in order to know the file structure of the skeleton
@@ -60,14 +60,19 @@ EOT
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $entity = Validators::validateEntityName($input->getArgument('entity'));
-        list($bundle, $entity) = $this->parseShortcutNotation($entity);
 
-        $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($bundle).'\\'.$entity;
+        /** @var KernelInterface $kernel */
+        $kernel = $this->getContainer()->get('kernel');
+        $rc = new \ReflectionClass($kernel);
+
+        $entity = str_replace('/', '\\', $entity);
+
+        $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($rc->getNamespaceName()).'\\'.$entity;
         $metadata = $this->getEntityMetadata($entityClass);
-        $bundle = $this->getApplication()->getKernel()->getBundle($bundle);
-        $generator = $this->getGenerator($bundle);
+        /** @var DoctrineFormGenerator $generator */
+        $generator = $this->getGenerator($kernel);
 
-        $generator->generate($bundle, $entity, $metadata[0]);
+        $generator->generate($kernel, $entity, $metadata[0]);
 
         $output->writeln(sprintf(
             'The new %s.php class file has been created under %s.',
@@ -78,6 +83,6 @@ EOT
 
     protected function createGenerator()
     {
-        return new DoctrineFormGenerator($this->getContainer()->get('filesystem'));
+        return new DoctrineFormGenerator();
     }
 }

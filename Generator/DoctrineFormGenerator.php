@@ -23,18 +23,15 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  */
 class DoctrineFormGenerator extends Generator
 {
-    private $filesystem;
     private $className;
     private $classPath;
 
     /**
      * Constructor.
-     *
-     * @param Filesystem $filesystem A Filesystem instance
      */
-    public function __construct(Filesystem $filesystem)
+    public function __construct()
     {
-        $this->filesystem = $filesystem;
+
     }
 
     public function getClassName()
