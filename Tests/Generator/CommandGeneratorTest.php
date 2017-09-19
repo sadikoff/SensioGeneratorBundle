@@ -21,13 +21,13 @@ class CommandGeneratorTest extends GeneratorTest
         $commandFile = 'Command/AppFooBarCommand.php';
         $commandPath = $this->tmpDir.'/'.$commandFile;
 
-        $this->getGenerator()->generate($this->getBundle(), $commandName);
+        $this->getGenerator()->generate($this->getKernel(), $commandName);
 
         $this->assertTrue(file_exists($commandPath), sprintf('%s file has been generated.', $commandFile));
 
         $commandContent = file_get_contents($commandPath);
         $strings = array(
-            'namespace Foo\\BarBundle\\Command',
+            'namespace App\\Command',
             'class AppFooBarCommand extends ContainerAwareCommand',
             sprintf("->setName('%s')", $commandName),
         );
@@ -67,13 +67,16 @@ class CommandGeneratorTest extends GeneratorTest
         return $generator;
     }
 
-    protected function getBundle()
+    protected function getKernel()
     {
-        $bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $bundle->expects($this->any())->method('getPath')->will($this->returnValue($this->tmpDir));
-        $bundle->expects($this->any())->method('getName')->will($this->returnValue('FooBarBundle'));
-        $bundle->expects($this->any())->method('getNamespace')->will($this->returnValue('Foo\BarBundle'));
 
-        return $bundle;
+        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\KernelInterface')->getMock();
+        $kernel
+            ->expects($this->any())
+            ->method('getRootDir')
+            ->will($this->returnValue($this->tmpDir))
+        ;
+
+        return $kernel;
     }
 }

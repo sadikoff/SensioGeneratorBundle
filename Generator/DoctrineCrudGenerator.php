@@ -11,8 +11,8 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
+use Sensio\Bundle\GeneratorBundle\Extractor\NamespaceExtractor;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Common\Inflector\Inflector;
 
@@ -23,11 +23,10 @@ use Doctrine\Common\Inflector\Inflector;
  */
 class DoctrineCrudGenerator extends Generator
 {
-    protected $filesystem;
     protected $rootDir;
     protected $routePrefix;
     protected $routeNamePrefix;
-    protected $bundle;
+    protected $kernel;
     protected $entity;
     protected $entitySingularized;
     protected $entityPluralized;
@@ -36,19 +35,17 @@ class DoctrineCrudGenerator extends Generator
     protected $actions;
 
     /**
-     * @param Filesystem $filesystem
      * @param string     $rootDir
      */
-    public function __construct(Filesystem $filesystem, $rootDir)
+    public function __construct($rootDir)
     {
-        $this->filesystem = $filesystem;
         $this->rootDir = $rootDir;
     }
 
     /**
      * Generate the CRUD controller.
      *
-     * @param BundleInterface   $bundle           A bundle object
+     * @param KernelInterface   $kernel           A bundle object
      * @param string            $entity           The entity relative class name
      * @param ClassMetadataInfo $metadata         The entity class metadata
      * @param string            $format           The configuration format (xml, yaml, annotation)
@@ -58,7 +55,7 @@ class DoctrineCrudGenerator extends Generator
      *
      * @throws \RuntimeException
      */
-    public function generate(BundleInterface $bundle, $entity, ClassMetadataInfo $metadata, $format, $routePrefix, $needWriteActions, $forceOverwrite)
+    public function generate(KernelInterface $kernel, $entity, ClassMetadataInfo $metadata, $format, $routePrefix, $needWriteActions, $forceOverwrite)
     {
         $this->routePrefix = $routePrefix;
         $this->routeNamePrefix = self::getRouteNamePrefix($routePrefix);
@@ -74,13 +71,13 @@ class DoctrineCrudGenerator extends Generator
         $entityName = end($entityParts);
         $this->entitySingularized = lcfirst(Inflector::singularize($entityName));
         $this->entityPluralized = lcfirst(Inflector::pluralize($entityName));
-        $this->bundle = $bundle;
+        $this->kernel = $kernel;
         $this->metadata = $metadata;
         $this->setFormat($format);
 
         $this->generateControllerClass($forceOverwrite);
 
-        $dir = sprintf('%s/Resources/views/%s', $this->rootDir, strtolower($entity));
+        $dir = sprintf('%s/../templates/%s', $this->rootDir, $entity);
 
         if (!file_exists($dir)) {
             self::mkdir($dir);
@@ -112,14 +109,14 @@ class DoctrineCrudGenerator extends Generator
     protected function setFormat($format)
     {
         switch ($format) {
-            case 'yml':
+            case 'yaml':
             case 'xml':
             case 'php':
             case 'annotation':
                 $this->format = $format;
                 break;
             default:
-                $this->format = 'yml';
+                $this->format = 'yaml';
                 break;
         }
     }
@@ -134,8 +131,8 @@ class DoctrineCrudGenerator extends Generator
         }
 
         $target = sprintf(
-            '%s/Resources/config/routing/%s.%s',
-            $this->bundle->getPath(),
+            '%s/../config/routes/%s.%s',
+            $this->kernel->getRootDir(),
             strtolower(str_replace('\\', '_', $this->entity)),
             $this->format
         );
@@ -144,7 +141,6 @@ class DoctrineCrudGenerator extends Generator
             'actions' => $this->actions,
             'route_prefix' => $this->routePrefix,
             'route_name_prefix' => $this->routeNamePrefix,
-            'bundle' => $this->bundle->getName(),
             'entity' => $this->entity,
             'identifier' => $this->metadata->identifier[0],
         ));
@@ -155,7 +151,7 @@ class DoctrineCrudGenerator extends Generator
      */
     protected function generateControllerClass($forceOverwrite)
     {
-        $dir = $this->bundle->getPath();
+        $dir = $this->kernel->getRootDir();
 
         $parts = explode('\\', $this->entity);
         $entityClass = array_pop($parts);
@@ -176,13 +172,12 @@ class DoctrineCrudGenerator extends Generator
             'actions' => $this->actions,
             'route_prefix' => $this->routePrefix,
             'route_name_prefix' => $this->routeNamePrefix,
-            'bundle' => $this->bundle->getName(),
             'entity' => $this->entity,
             'entity_singularized' => $this->entitySingularized,
             'entity_pluralized' => $this->entityPluralized,
             'identifier' => $this->metadata->identifier[0],
             'entity_class' => $entityClass,
-            'namespace' => $this->bundle->getNamespace(),
+            'namespace' => NamespaceExtractor::from($this->kernel),
             'entity_namespace' => $entityNamespace,
             'format' => $this->format,
             // BC with Symfony 2.7
@@ -199,19 +194,20 @@ class DoctrineCrudGenerator extends Generator
         $entityClass = array_pop($parts);
         $entityNamespace = implode('\\', $parts);
 
-        $dir = $this->bundle->getPath().'/Tests/Controller';
+        $dir = $this->kernel->getRootDir().'/Tests/Controller';
         $target = $dir.'/'.str_replace('\\', '/', $entityNamespace).'/'.$entityClass.'ControllerTest.php';
+
+        $namespace = NamespaceExtractor::from($this->kernel);
 
         $this->renderFile('crud/tests/test.php.twig', $target, array(
             'route_prefix' => $this->routePrefix,
             'route_name_prefix' => $this->routeNamePrefix,
             'entity' => $this->entity,
-            'bundle' => $this->bundle->getName(),
             'entity_class' => $entityClass,
-            'namespace' => $this->bundle->getNamespace(),
+            'namespace' => $namespace,
             'entity_namespace' => $entityNamespace,
             'actions' => $this->actions,
-            'form_type_name' => strtolower(str_replace('\\', '_', $this->bundle->getNamespace()).($parts ? '_' : '').implode('_', $parts).'_'.$entityClass),
+            'form_type_name' => strtolower(str_replace('\\', '_', $namespace).($parts ? '_' : '').implode('_', $parts).'_'.$entityClass),
         ));
     }
 
@@ -223,7 +219,6 @@ class DoctrineCrudGenerator extends Generator
     protected function generateIndexView($dir)
     {
         $this->renderFile('crud/views/index.html.twig.twig', $dir.'/index.html.twig', array(
-            'bundle' => $this->bundle->getName(),
             'entity' => $this->entity,
             'entity_pluralized' => $this->entityPluralized,
             'entity_singularized' => $this->entitySingularized,
@@ -244,7 +239,6 @@ class DoctrineCrudGenerator extends Generator
     protected function generateShowView($dir)
     {
         $this->renderFile('crud/views/show.html.twig.twig', $dir.'/show.html.twig', array(
-            'bundle' => $this->bundle->getName(),
             'entity' => $this->entity,
             'entity_singularized' => $this->entitySingularized,
             'identifier' => $this->metadata->identifier[0],
@@ -263,7 +257,6 @@ class DoctrineCrudGenerator extends Generator
     protected function generateNewView($dir)
     {
         $this->renderFile('crud/views/new.html.twig.twig', $dir.'/new.html.twig', array(
-            'bundle' => $this->bundle->getName(),
             'entity' => $this->entity,
             'entity_singularized' => $this->entitySingularized,
             'route_prefix' => $this->routePrefix,
@@ -287,7 +280,6 @@ class DoctrineCrudGenerator extends Generator
             'entity' => $this->entity,
             'entity_singularized' => $this->entitySingularized,
             'fields' => $this->metadata->fieldMappings,
-            'bundle' => $this->bundle->getName(),
             'actions' => $this->actions,
         ));
     }

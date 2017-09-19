@@ -11,15 +11,17 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
+use Sensio\Bundle\GeneratorBundle\Extractor\NamespaceExtractor;
 use Sensio\Bundle\GeneratorBundle\Model\EntityGeneratorResult;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Tools\EntityGenerator;
 use Doctrine\ORM\Tools\EntityRepositoryGenerator;
 use Doctrine\ORM\Tools\Export\ClassMetadataExporter;
 use Doctrine\Common\Util\Inflector;
+
 
 /**
  * Generates a Doctrine entity class based on its name, fields and format.
@@ -29,36 +31,38 @@ use Doctrine\Common\Util\Inflector;
  */
 class DoctrineEntityGenerator extends Generator
 {
-    private $filesystem;
     private $registry;
 
-    public function __construct(Filesystem $filesystem, RegistryInterface $registry)
+    public function __construct(RegistryInterface $registry)
     {
-        $this->filesystem = $filesystem;
         $this->registry = $registry;
     }
 
     /**
-     * @param BundleInterface $bundle
+     * @param KernelInterface $kernel
      * @param string          $entity
      * @param string          $format
      * @param array           $fields
      *
      * @return EntityGeneratorResult
      *
+     * @throws \Doctrine\ORM\Mapping\MappingException
      * @throws \Doctrine\ORM\Tools\Export\ExportException
      */
-    public function generate(BundleInterface $bundle, $entity, $format, array $fields)
+    public function generate(KernelInterface $kernel, $entity, $format, array $fields)
     {
         // configure the bundle (needed if the bundle does not contain any Entities yet)
         $config = $this->registry->getManager(null)->getConfiguration();
+
+        $namespace = NamespaceExtractor::from($kernel);
+
         $config->setEntityNamespaces(array_merge(
-            array($bundle->getName() => $bundle->getNamespace().'\\Entity'),
+            array($namespace => $namespace.'\\Entity'),
             $config->getEntityNamespaces()
         ));
 
-        $entityClass = $this->registry->getAliasNamespace($bundle->getName()).'\\'.$entity;
-        $entityPath = $bundle->getPath().'/Entity/'.str_replace('\\', '/', $entity).'.php';
+        $entityClass = $this->registry->getAliasNamespace($namespace).'\\'.$entity;
+        $entityPath = $kernel->getRootDir().'/Entity/'.str_replace('\\', '/', $entity).'.php';
         if (file_exists($entityPath)) {
             throw new \RuntimeException(sprintf('Entity "%s" already exists.', $entityClass));
         }
@@ -72,15 +76,15 @@ class DoctrineEntityGenerator extends Generator
         }
 
         $entityGenerator = $this->getEntityGenerator();
+        $class->setPrimaryTable(array('name' => Inflector::tableize(str_replace('\\', '', $entity))));
         if ('annotation' === $format) {
             $entityGenerator->setGenerateAnnotations(true);
-            $class->setPrimaryTable(array('name' => Inflector::tableize(str_replace('\\', '', $entity))));
             $entityCode = $entityGenerator->generateEntityClass($class);
             $mappingPath = $mappingCode = false;
         } else {
             $cme = new ClassMetadataExporter();
             $exporter = $cme->getExporter('yml' == $format ? 'yaml' : $format);
-            $mappingPath = $bundle->getPath().'/Resources/config/doctrine/'.str_replace('\\', '.', $entity).'.orm.'.$format;
+            $mappingPath = $kernel->getRootDir().'/../config/doctrine/'.str_replace('\\', '.', $entity).'.orm.'.$format;
 
             if (file_exists($mappingPath)) {
                 throw new \RuntimeException(sprintf('Cannot generate entity when mapping "%s" already exists.', $mappingPath));
@@ -104,9 +108,11 @@ class DoctrineEntityGenerator extends Generator
             self::dump($mappingPath, $mappingCode);
         }
 
-        $path = $bundle->getPath().str_repeat('/..', substr_count(get_class($bundle), '\\'));
-        $this->getRepositoryGenerator()->writeEntityRepositoryClass($class->customRepositoryClassName, $path);
-        $repositoryPath = $path.DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $class->customRepositoryClassName).'.php';
+        $repositoryPath = $kernel->getRootDir().'/Repository/'.$entity.'Repository.php';
+        $repositoryCode = $this->getRepositoryGenerator()->generateEntityRepositoryClass($class->customRepositoryClassName);
+
+        self::mkdir(dirname($repositoryPath));
+        self::dump($repositoryPath, $repositoryCode);
 
         return new EntityGeneratorResult($entityPath, $repositoryPath, $mappingPath);
     }

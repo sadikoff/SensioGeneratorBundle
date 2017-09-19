@@ -19,13 +19,13 @@ use Symfony\Component\DependencyInjection\Container;
 
 abstract class GenerateCommandTest extends \PHPUnit_Framework_TestCase
 {
-    protected $bundle;
+    protected $kernel;
 
     protected function tearDown()
     {
-        if (null !== $this->bundle) {
+        if (null !== $this->kernel) {
             $fs = new Filesystem();
-            $fs->remove($this->bundle->getPath());
+            //$fs->remove(dirname($this->kernel->getRootDir()));
         }
     }
 
@@ -48,40 +48,28 @@ abstract class GenerateCommandTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    protected function getBundle()
+    protected function getKernel()
     {
-        if (null !== $this->bundle) {
-            return $this->bundle;
+        if (null !== $this->kernel) {
+            return $this->kernel;
         }
 
-        $tmpDir = sys_get_temp_dir().'/sf'.mt_rand(111111, 999999);
+        $tmpDir = sys_get_temp_dir().'/sf'.mt_rand(111111, 999999).'/src';
         @mkdir($tmpDir, 0777, true);
 
-        $this->bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $this->bundle
+        $this->kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\KernelInterface')->getMock();
+        $this->kernel
             ->expects($this->any())
-            ->method('getPath')
+            ->method('getRootDir')
             ->will($this->returnValue($tmpDir))
         ;
 
-        return $this->bundle;
+        return $this->kernel;
     }
 
     protected function getContainer()
     {
-        $bundle = $this->getBundle();
-
-        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\KernelInterface')->getMock();
-        $kernel
-            ->expects($this->any())
-            ->method('getBundle')
-            ->will($this->returnValue($bundle))
-        ;
-        $kernel
-            ->expects($this->any())
-            ->method('getBundles')
-            ->will($this->returnValue(array($bundle)))
-        ;
+        $kernel = $this->getKernel();
 
         $filesystem = $this->getMockBuilder('Symfony\Component\Filesystem\Filesystem')->getMock();
         $filesystem
@@ -94,7 +82,7 @@ abstract class GenerateCommandTest extends \PHPUnit_Framework_TestCase
         $container->set('kernel', $kernel);
         $container->set('filesystem', $filesystem);
 
-        $container->setParameter('kernel.root_dir', $bundle->getPath());
+        $container->setParameter('kernel.root_dir', $kernel->getRootDir());
 
         return $container;
     }

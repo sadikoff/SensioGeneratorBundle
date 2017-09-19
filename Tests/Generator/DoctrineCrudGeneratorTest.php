@@ -17,23 +17,23 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 {
     public function testGenerateYamlFull()
     {
-        $this->getGenerator()->generate($this->getBundle(), 'Post', $this->getMetadata(), 'yml', '/post', true, true);
+        $this->getGenerator()->generate($this->getKernel(), 'Post', $this->getMetadata(), 'yml', '/post', true, true);
 
         $files = array(
             'Controller/PostController.php',
             'Tests/Controller/PostControllerTest.php',
-            'Resources/config/routing/post.yml',
-            'Resources/views/post/index.html.twig',
-            'Resources/views/post/show.html.twig',
-            'Resources/views/post/new.html.twig',
-            'Resources/views/post/edit.html.twig',
+            '../config/routes/post.yaml',
+            '../templates/Post/index.html.twig',
+            '../templates/Post/show.html.twig',
+            '../templates/Post/new.html.twig',
+            '../templates/Post/edit.html.twig',
         );
         foreach ($files as $file) {
             $this->assertTrue(file_exists($this->tmpDir.'/'.$file), sprintf('%s has been generated', $file));
         }
 
         $files = array(
-            'Resources/config/routing/post.xml',
+            '../config/routes/post.xml',
         );
         foreach ($files as $file) {
             $this->assertFalse(file_exists($this->tmpDir.'/'.$file), sprintf('%s has not been generated', $file));
@@ -41,7 +41,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
         $content = file_get_contents($this->tmpDir.'/Controller/PostController.php');
         $strings = array(
-            'namespace Foo\BarBundle\Controller;',
+            'namespace App\Controller;',
             'public function indexAction',
             'public function showAction',
             'public function newAction',
@@ -54,23 +54,23 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
     public function testGenerateXml()
     {
-        $this->getGenerator()->generate($this->getBundle(), 'Post', $this->getMetadata(), 'xml', '/post', false, true);
+        $this->getGenerator()->generate($this->getKernel(), 'Post', $this->getMetadata(), 'xml', '/post', false, true);
 
         $files = array(
             'Controller/PostController.php',
             'Tests/Controller/PostControllerTest.php',
-            'Resources/config/routing/post.xml',
-            'Resources/views/post/index.html.twig',
-            'Resources/views/post/show.html.twig',
+            '../config/routes/post.xml',
+            '../templates/Post/index.html.twig',
+            '../templates/Post/show.html.twig',
         );
         foreach ($files as $file) {
             $this->assertTrue(file_exists($this->tmpDir.'/'.$file), sprintf('%s has been generated', $file));
         }
 
         $files = array(
-            'Resources/config/routing/post.yml',
-            'Resources/views/post/new.html.twig',
-            'Resources/views/post/edit.html.twig',
+            '../config/routes/post.yaml',
+            '../templates/Post/new.html.twig',
+            '../templates/Post/edit.html.twig',
         );
         foreach ($files as $file) {
             $this->assertFalse(file_exists($this->tmpDir.'/'.$file), sprintf('%s has not been generated', $file));
@@ -78,7 +78,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
         $content = file_get_contents($this->tmpDir.'/Controller/PostController.php');
         $strings = array(
-            'namespace Foo\BarBundle\Controller;',
+            'namespace App\Controller;',
             'public function indexAction',
             'public function showAction',
         );
@@ -99,23 +99,23 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
     public function testGenerateAnnotationWrite()
     {
-        $this->getGenerator()->generate($this->getBundle(), 'Post', $this->getMetadata(), 'annotation', '/post', true, true);
+        $this->getGenerator()->generate($this->getKernel(), 'Post', $this->getMetadata(), 'annotation', '/post', true, true);
 
         $files = array(
             'Controller/PostController.php',
             'Tests/Controller/PostControllerTest.php',
-            'Resources/views/post/index.html.twig',
-            'Resources/views/post/show.html.twig',
-            'Resources/views/post/new.html.twig',
-            'Resources/views/post/edit.html.twig',
+            '../templates/Post/index.html.twig',
+            '../templates/Post/show.html.twig',
+            '../templates/Post/new.html.twig',
+            '../templates/Post/edit.html.twig',
         );
         foreach ($files as $file) {
             $this->assertTrue(file_exists($this->tmpDir.'/'.$file), sprintf('%s has been generated', $file));
         }
 
         $files = array(
-            'Resources/config/routing/post.yml',
-            'Resources/config/routing/post.xml',
+            '../config/routes/post.yml',
+            '../config/routes/post.xml',
         );
         foreach ($files as $file) {
             $this->assertFalse(file_exists($this->tmpDir.'/'.$file), sprintf('%s has not been generated', $file));
@@ -123,7 +123,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
         $content = file_get_contents($this->tmpDir.'/Controller/PostController.php');
         $strings = array(
-            'namespace Foo\BarBundle\Controller;',
+            'namespace App\Controller;',
             'public function indexAction',
             'public function showAction',
             'public function newAction',
@@ -137,23 +137,23 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
     public function testGenerateAnnotation()
     {
-        $this->getGenerator()->generate($this->getBundle(), 'Post', $this->getMetadata(), 'annotation', '/post', false, true);
+        $this->getGenerator()->generate($this->getKernel(), 'Post', $this->getMetadata(), 'annotation', '/post', false, true);
 
         $files = array(
             'Controller/PostController.php',
             'Tests/Controller/PostControllerTest.php',
-            'Resources/views/post/index.html.twig',
-            'Resources/views/post/show.html.twig',
+            '../templates/Post/index.html.twig',
+            '../templates/Post/show.html.twig',
         );
         foreach ($files as $file) {
             $this->assertTrue(file_exists($this->tmpDir.'/'.$file), sprintf('%s has been generated', $file));
         }
 
         $files = array(
-            'Resources/config/routing/post.yml',
-            'Resources/config/routing/post.xml',
-            'Resources/views/post/new.html.twig',
-            'Resources/views/post/edit.html.twig',
+            '../config/routes/post.yml',
+            '../config/routes/post.xml',
+            '../templates/Post/new.html.twig',
+            '../templates/Post/edit.html.twig',
         );
         foreach ($files as $file) {
             $this->assertFalse(file_exists($this->tmpDir.'/'.$file), sprintf('%s has not been generated', $file));
@@ -161,7 +161,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
         $content = file_get_contents($this->tmpDir.'/Controller/PostController.php');
         $strings = array(
-            'namespace Foo\BarBundle\Controller;',
+            'namespace App\Controller;',
             'public function indexAction',
             'public function showAction',
             '@Route("/post")', // Controller level
@@ -184,15 +184,15 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
     public function testGenerateNamespacedEntity()
     {
-        $this->getGenerator()->generate($this->getBundle(), 'Blog\Post', $this->getMetadata(), 'annotation', '/blog_post', true, true);
+        $this->getGenerator()->generate($this->getKernel(), 'Blog\Post', $this->getMetadata(), 'annotation', '/blog_post', true, true);
 
         $files = array(
             'Controller/Blog/PostController.php',
             'Tests/Controller/Blog/PostControllerTest.php',
-            'Resources/views/blog/post/index.html.twig',
-            'Resources/views/blog/post/show.html.twig',
-            'Resources/views/blog/post/new.html.twig',
-            'Resources/views/blog/post/edit.html.twig',
+            '../templates/Blog/Post/index.html.twig',
+            '../templates/Blog/Post/show.html.twig',
+            '../templates/Blog/Post/new.html.twig',
+            '../templates/Blog/Post/edit.html.twig',
         );
         foreach ($files as $file) {
             $this->assertTrue(file_exists($this->tmpDir.'/'.$file), sprintf('%s has been generated', $file));
@@ -200,7 +200,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
         $content = file_get_contents($this->tmpDir.'/Controller/Blog/PostController.php');
         $strings = array(
-            'namespace Foo\BarBundle\Controller\Blog;',
+            'namespace App\Controller\Blog;',
             '@Route("/blog_post")', // Controller level
             '@Route("/", name="blog_post_index")',
             '@Route("/{id}", name="blog_post_show")',
@@ -260,20 +260,23 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
     protected function getGenerator()
     {
-        $generator = new DoctrineCrudGenerator($this->filesystem, $this->tmpDir);
+        $generator = new DoctrineCrudGenerator($this->tmpDir);
         $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
 
         return $generator;
     }
 
-    protected function getBundle()
+    protected function getKernel()
     {
-        $bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $bundle->expects($this->any())->method('getPath')->will($this->returnValue($this->tmpDir));
-        $bundle->expects($this->any())->method('getName')->will($this->returnValue('FooBarBundle'));
-        $bundle->expects($this->any())->method('getNamespace')->will($this->returnValue('Foo\BarBundle'));
 
-        return $bundle;
+        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\KernelInterface')->getMock();
+        $kernel
+            ->expects($this->any())
+            ->method('getRootDir')
+            ->will($this->returnValue($this->tmpDir))
+        ;
+
+        return $kernel;
     }
 
     public function getMetadata()

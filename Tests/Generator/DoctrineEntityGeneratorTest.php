@@ -28,7 +28,7 @@ class DoctrineEntityGeneratorTest extends GeneratorTest
 
         $files = array(
             'Entity/Foo.php',
-            'Resources/config/doctrine/Foo.orm.yml',
+            '../config/doctrine/Foo.orm.yml',
         );
 
         $this->assertFilesExists($files);
@@ -41,7 +41,7 @@ class DoctrineEntityGeneratorTest extends GeneratorTest
 
         $files = array(
             'Entity/Sub/Foo.php',
-            'Resources/config/doctrine/Sub.Foo.orm.yml',
+            '../config/doctrine/Sub.Foo.orm.yml',
         );
 
         $this->assertFilesExists($files);
@@ -54,7 +54,7 @@ class DoctrineEntityGeneratorTest extends GeneratorTest
 
         $files = array(
             'Entity/Foo.php',
-            'Resources/config/doctrine/Foo.orm.xml',
+            '../config/doctrine/Foo.orm.xml',
         );
 
         $this->assertFilesExists($files);
@@ -67,7 +67,7 @@ class DoctrineEntityGeneratorTest extends GeneratorTest
 
         $files = array(
             'Entity/Sub/Foo.php',
-            'Resources/config/doctrine/Sub.Foo.orm.xml',
+            '../config/doctrine/Sub.Foo.orm.xml',
         );
 
         $this->assertFilesExists($files);
@@ -122,7 +122,7 @@ class DoctrineEntityGeneratorTest extends GeneratorTest
         $content = file_get_contents($this->tmpDir.'/Entity/'.$entity.'.php');
 
         $strings = array(
-            'namespace Foo\\BarBundle\\Entity',
+            'namespace App\\Entity',
             'class Foo',
             'private $id',
             'private $bar',
@@ -143,30 +143,33 @@ class DoctrineEntityGeneratorTest extends GeneratorTest
 
     protected function generate($format)
     {
-        $this->getGenerator()->generate($this->getBundle(), 'Foo', $format, $this->getFields());
+        $this->getGenerator()->generate($this->getKernel(), 'Foo', $format, $this->getFields());
     }
 
     protected function generateSubNamespaced($format)
     {
-        $this->getGenerator()->generate($this->getBundle(), 'Sub\Foo', $format, $this->getFields());
+        $this->getGenerator()->generate($this->getKernel(), 'Sub\Foo', $format, $this->getFields());
     }
 
     protected function getGenerator()
     {
-        $generator = new DoctrineEntityGenerator($this->filesystem, $this->getRegistry());
+        $generator = new DoctrineEntityGenerator($this->getRegistry());
         $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
 
         return $generator;
     }
 
-    protected function getBundle()
+    protected function getKernel()
     {
-        $bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $bundle->expects($this->any())->method('getPath')->will($this->returnValue($this->tmpDir));
-        $bundle->expects($this->any())->method('getName')->will($this->returnValue('FooBarBundle'));
-        $bundle->expects($this->any())->method('getNamespace')->will($this->returnValue('Foo\BarBundle'));
 
-        return $bundle;
+        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\KernelInterface')->getMock();
+        $kernel
+            ->expects($this->any())
+            ->method('getRootDir')
+            ->will($this->returnValue($this->tmpDir))
+        ;
+
+        return $kernel;
     }
 
     protected function getFields()
@@ -181,7 +184,7 @@ class DoctrineEntityGeneratorTest extends GeneratorTest
     {
         $registry = $this->getMockBuilder('Symfony\Bridge\Doctrine\RegistryInterface')->getMock();
         $registry->expects($this->any())->method('getManager')->will($this->returnValue($this->getManager()));
-        $registry->expects($this->any())->method('getAliasNamespace')->will($this->returnValue('Foo\\BarBundle\\Entity'));
+        $registry->expects($this->any())->method('getAliasNamespace')->will($this->returnValue('App\\Entity'));
 
         return $registry;
     }
@@ -199,7 +202,7 @@ class DoctrineEntityGeneratorTest extends GeneratorTest
     public function getConfiguration()
     {
         $config = $this->getMockBuilder('Doctrine\ORM\Configuration')->getMock();
-        $config->expects($this->any())->method('getEntityNamespaces')->will($this->returnValue(array('Foo\\BarBundle')));
+        $config->expects($this->any())->method('getEntityNamespaces')->will($this->returnValue(array('App')));
 
         return $config;
     }

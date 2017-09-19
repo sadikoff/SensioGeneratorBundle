@@ -17,7 +17,7 @@
 {% block method_body %}
         $em = $this->getDoctrine()->getManager();
 
-        ${{ entity_pluralized }} = $em->getRepository('{{ bundle }}:{{ entity }}')->findAll();
+        ${{ entity_pluralized }} = $em->getRepository('App:{{ entity }}')->findAll();
 {% endblock method_body %}
 
 {% block method_return %}

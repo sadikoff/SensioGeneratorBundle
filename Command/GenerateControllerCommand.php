@@ -19,6 +19,7 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 use Sensio\Bundle\GeneratorBundle\Command\Helper\QuestionHelper;
 use Sensio\Bundle\GeneratorBundle\Generator\ControllerGenerator;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Generates controllers.
@@ -37,7 +38,7 @@ class GenerateControllerCommand extends GeneratorCommand
             ->setDescription('Generates a controller')
             ->setDefinition(array(
                 new InputOption('controller', '', InputOption::VALUE_REQUIRED, 'The name of the controller to create'),
-                new InputOption('route-format', '', InputOption::VALUE_REQUIRED, 'The format that is used for the routing (yml, xml, php, annotation)', 'annotation'),
+                new InputOption('route-format', '', InputOption::VALUE_REQUIRED, 'The format that is used for the routing (yaml, annotation)', 'annotation'),
                 new InputOption('template-format', '', InputOption::VALUE_REQUIRED, 'The format that is used for templating (twig, php)', 'twig'),
                 new InputOption('actions', '', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'The actions in the controller'),
             ))
@@ -49,18 +50,17 @@ By default, the command interacts with the developer to tweak the generation.
 Any passed option will be used as a default value for the interaction
 (<comment>--controller</comment> is the only one needed if you follow the conventions):
 
-<info>php %command.full_name% --controller=AcmeBlogBundle:Post</info>
+<info>php %command.full_name% --controller=Post</info>
 
 If you want to disable any user interaction, use <comment>--no-interaction</comment>
 but don't forget to pass all needed options:
 
-<info>php %command.full_name% --controller=AcmeBlogBundle:Post --no-interaction</info>
+<info>php %command.full_name% --controller=Post --no-interaction</info>
 
 Every generated file is based on a template. There are default templates but they can
 be overridden by placing custom templates in one of the following locations, by order of priority:
 
-<info>BUNDLE_PATH/Resources/SensioGeneratorBundle/skeleton/controller
-APP_PATH/Resources/SensioGeneratorBundle/skeleton/controller</info>
+<info>APP_PATH/Resources/SensioGeneratorBundle/skeleton/controller</info>
 
 You can check https://github.com/sensio/SensioGeneratorBundle/tree/master/Resources/skeleton
 in order to know the file structure of the skeleton
@@ -86,24 +86,18 @@ EOT
             throw new \RuntimeException('The controller option must be provided.');
         }
 
-        list($bundle, $controller) = $this->parseShortcutNotation($input->getOption('controller'));
-        if (is_string($bundle)) {
-            $bundle = Validators::validateBundleName($bundle);
+        $controller = $input->getOption('controller');
 
-            try {
-                $bundle = $this->getContainer()->get('kernel')->getBundle($bundle);
-            } catch (\Exception $e) {
-                $output->writeln(sprintf('<bg=red>Bundle "%s" does not exist.</>', $bundle));
-            }
-        }
+        /** @var KernelInterface $kernel */
+        $kernel = $this->getContainer()->get('kernel');
 
         $questionHelper->writeSection($output, 'Controller generation');
 
         $routingFormat = $input->getOption('route-format');
         /** @var ControllerGenerator $generator */
-        $generator = $this->getGenerator($bundle);
+        $generator = $this->getGenerator($kernel);
         $generator->generate(
-            $bundle,
+            $kernel,
             $controller,
             $routingFormat,
             $input->getOption('template-format'),
@@ -111,10 +105,10 @@ EOT
         );
 
         if ('annotations' === $routingFormat) {
-            $this->tryUpdateAnnotationRouting($bundle, $controller);
+            $this->tryUpdateAnnotationRouting($controller);
         }
 
-        $output->writeln('Generating the bundle code: <info>OK</info>');
+        $output->writeln('Generating the code: <info>OK</info>');
 
         $questionHelper->writeGeneratorSummary($output, array());
     }
@@ -131,32 +125,26 @@ EOT
             'This command helps you generate them easily.',
             '',
             'First, you need to give the controller name you want to generate.',
-            'You must use the shortcut notation like <comment>AcmeBlogBundle:Post</comment>',
+            'You must use the shortcut notation like <comment>Post</comment>',
             '',
         ));
 
-        $bundleNames = array_keys($this->getContainer()->get('kernel')->getBundles());
+        $kernel = $this->getContainer()->get('kernel');
 
         while (true) {
             $question = new Question($questionHelper->getQuestion('Controller name', $input->getOption('controller')), $input->getOption('controller'));
-            $question->setAutocompleterValues($bundleNames);
             $question->setValidator(array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateControllerName'));
             $controller = $questionHelper->ask($input, $output, $question);
-            list($bundle, $controller) = $this->parseShortcutNotation($controller);
 
-            try {
-                $b = $this->getContainer()->get('kernel')->getBundle($bundle);
+            $controller = str_replace('/', '\\', $controller);
 
-                if (!file_exists($b->getPath().'/Controller/'.$controller.'Controller.php')) {
-                    break;
-                }
-
-                $output->writeln(sprintf('<bg=red>Controller "%s:%s" already exists.</>', $bundle, $controller));
-            } catch (\Exception $e) {
-                $output->writeln(sprintf('<bg=red>Bundle "%s" does not exist.</>', $bundle));
+            if (!file_exists($kernel->getRootdir().'/Controller/'.$controller.'Controller.php')) {
+                break;
             }
+
+            $output->writeln(sprintf('<bg=red>Controller "%s" already exists.</>', $controller));
         }
-        $input->setOption('controller', $bundle.':'.$controller);
+        $input->setOption('controller', $controller);
 
         // routing format
         $defaultFormat = (null !== $input->getOption('route-format') ? $input->getOption('route-format') : 'annotation');
@@ -165,7 +153,7 @@ EOT
             'Determine the format to use for the routing.',
             '',
         ));
-        $question = new Question($questionHelper->getQuestion('Routing format (php, xml, yml, annotation)', $defaultFormat), $defaultFormat);
+        $question = new Question($questionHelper->getQuestion('Routing format (yaml, annotation)', $defaultFormat), $defaultFormat);
         $question->setValidator(array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateFormat'));
         $routeFormat = $questionHelper->ask($input, $output, $question);
         $input->setOption('route-format', $routeFormat);
@@ -199,7 +187,7 @@ EOT
             '',
             $this->getHelper('formatter')->formatBlock('Summary before generation', 'bg=blue;fg-white', true),
             '',
-            sprintf('You are going to generate a "<info>%s:%s</info>" controller', $bundle, $controller),
+            sprintf('You are going to generate a "<info>%s</info>" controller', $controller),
             sprintf('using the "<info>%s</info>" format for the routing and the "<info>%s</info>" format', $routeFormat, $templateFormat),
             'for templating',
         ));
@@ -331,30 +319,19 @@ EOT
         return $placeholders;
     }
 
-    public function parseShortcutNotation($shortcut)
-    {
-        $entity = str_replace('/', '\\', $shortcut);
-
-        if (false === $pos = strpos($entity, ':')) {
-            throw new \InvalidArgumentException(sprintf('The controller name must contain a : ("%s" given, expecting something like AcmeBlogBundle:Post)', $entity));
-        }
-
-        return array(substr($entity, 0, $pos), substr($entity, $pos + 1));
-    }
-
     protected function createGenerator()
     {
         return new ControllerGenerator($this->getContainer()->get('filesystem'));
     }
 
-    private function tryUpdateAnnotationRouting($bundleName, $controller)
+    private function tryUpdateAnnotationRouting($controller)
     {
         $routing = new RoutingManipulator($this->getContainer()->getParameter('kernel.root_dir').'/config/routing.yml');
 
-        if ($routing->hasResourceInAnnotation($bundleName)) {
+        if ($routing->hasResourceInAnnotation()) {
             return;
         }
 
-        $routing->addAnnotationController($bundleName, $controller);
+        $routing->addAnnotationController($controller);
     }
 }

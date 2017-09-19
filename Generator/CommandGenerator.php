@@ -11,6 +11,7 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
+use Sensio\Bundle\GeneratorBundle\Extractor\NamespaceExtractor;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -40,10 +41,8 @@ class CommandGenerator extends Generator
             throw new \RuntimeException(sprintf('Command "%s" already exists', $name));
         }
 
-        $kernelReflection = new \ReflectionClass($kernel);
-
         $parameters = array(
-            'namespace' => $kernelReflection->getNamespaceName(),
+            'namespace' => NamespaceExtractor::from($kernel),
             'class_name' => $commandClassName,
             'name' => $name,
         );

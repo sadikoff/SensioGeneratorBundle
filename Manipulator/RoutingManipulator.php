@@ -14,6 +14,7 @@ namespace Sensio\Bundle\GeneratorBundle\Manipulator;
 use Symfony\Component\DependencyInjection\Container;
 use Sensio\Bundle\GeneratorBundle\Generator\DoctrineCrudGenerator;
 use Sensio\Bundle\GeneratorBundle\Generator\Generator;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -80,11 +81,9 @@ class RoutingManipulator extends Manipulator
     /**
      * Checks if the routing file contains a line for the bundle.
      *
-     * @param string $bundle
-     *
      * @return bool
      */
-    public function hasResourceInAnnotation($bundle)
+    public function hasResourceInAnnotation()
     {
         if (!file_exists($this->file)) {
             return false;
@@ -92,7 +91,7 @@ class RoutingManipulator extends Manipulator
 
         $config = Yaml::parse(file_get_contents($this->file));
 
-        $search = sprintf('@%s/Controller/', $bundle);
+        $search = sprintf('%s', '../src/Controller/');
 
         foreach ($config as $resource) {
             if (array_key_exists('resource', $resource)) {
@@ -106,12 +105,11 @@ class RoutingManipulator extends Manipulator
     /**
      * Adds an annotation controller resource.
      *
-     * @param string $bundle
      * @param string $controller
      *
      * @return bool
      */
-    public function addAnnotationController($bundle, $controller)
+    public function addAnnotationController($controller)
     {
         $current = '';
 
@@ -121,9 +119,9 @@ class RoutingManipulator extends Manipulator
             mkdir($dir, 0777, true);
         }
 
-        $code = sprintf("%s:\n", Container::underscore(substr($bundle, 0, -6)).'_'.Container::underscore($controller));
+        $code = sprintf("%s_controller:\n", Container::underscore($controller));
 
-        $code .= sprintf("    resource: \"@%s/Controller/%sController.php\"\n    type:     annotation\n", $bundle, $controller);
+        $code .= sprintf("    resource: \"../src/Controller/%sController.php\"\n    type:     annotation\n", $controller);
 
         $code .= "\n";
         $code .= $current;

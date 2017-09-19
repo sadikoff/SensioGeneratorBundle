@@ -22,14 +22,15 @@ class DoctrineFormGeneratorTest extends GeneratorTest
         $this->assertTrue(file_exists($this->tmpDir.'/Form/PostType.php'));
 
         $content = file_get_contents($this->tmpDir.'/Form/PostType.php');
-        $this->assertContains('namespace Foo\BarBundle\Form', $content);
+        $this->assertContains('namespace App\Form', $content);
+        $this->assertContains('use App\Entity\Post;', $content);
         $this->assertContains('class PostType extends AbstractType', $content);
         $this->assertContains('->add(\'title\')', $content);
         $this->assertContains('->add(\'createdAt\')', $content);
         $this->assertContains('->add(\'publishedAt\')', $content);
         $this->assertContains('->add(\'updatedAt\')', $content);
         $this->assertContains('public function configureOptions(OptionsResolver $resolver)', $content);
-        $this->assertContains('\'data_class\' => \'Foo\BarBundle\Entity\Post\'', $content);
+        $this->assertContains('\'data_class\' => Post::class', $content);
     }
 
     public function testGenerateSubNamespacedEntity()
@@ -39,16 +40,17 @@ class DoctrineFormGeneratorTest extends GeneratorTest
         $this->assertTrue(file_exists($this->tmpDir.'/Form/Blog/PostType.php'));
 
         $content = file_get_contents($this->tmpDir.'/Form/Blog/PostType.php');
-        $this->assertContains('namespace Foo\BarBundle\Form\Blog', $content);
+        $this->assertContains('namespace App\Form\Blog', $content);
+        $this->assertContains('use App\Entity\Blog\Post;', $content);
         $this->assertContains('class PostType extends AbstractType', $content);
         $this->assertContains('->add(\'title\')', $content);
         $this->assertContains('->add(\'createdAt\')', $content);
         $this->assertContains('->add(\'publishedAt\')', $content);
         $this->assertContains('->add(\'updatedAt\')', $content);
         $this->assertContains('public function configureOptions(OptionsResolver $resolver)', $content);
-        $this->assertContains('\'data_class\' => \'Foo\BarBundle\Entity\Blog\Post\'', $content);
+        $this->assertContains('\'data_class\' => Post::class', $content);
         $this->assertContains('public function getBlockPrefix()', $content);
-        $this->assertContains('return \'foo_barbundle_blog_post\';', $content);
+        $this->assertContains('return \'app_blog_post\';', $content);
         if (method_exists('Symfony\Component\Form\AbstractType', 'getBlockPrefix')) {
             // Symfony >= 2.8
             $this->assertNotContains('public function getName()', $content);
@@ -78,12 +80,8 @@ class DoctrineFormGeneratorTest extends GeneratorTest
 
     private function generateForm($overwrite)
     {
-        $generator = new DoctrineFormGenerator($this->filesystem);
+        $generator = new DoctrineFormGenerator();
         $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
-
-        $bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $bundle->expects($this->any())->method('getPath')->will($this->returnValue($this->tmpDir));
-        $bundle->expects($this->any())->method('getNamespace')->will($this->returnValue('Foo\BarBundle'));
 
         $metadata = $this->getMockBuilder('Doctrine\ORM\Mapping\ClassMetadataInfo')->disableOriginalConstructor()->getMock();
         $metadata->identifier = array('id');
@@ -95,17 +93,14 @@ class DoctrineFormGeneratorTest extends GeneratorTest
         );
         $metadata->associationMappings = $metadata->fieldMappings;
 
-        $generator->generate($bundle, 'Post', $metadata, $overwrite);
+        $generator->generate($this->getKernel(), 'Post', $metadata, $overwrite);
     }
 
     private function generateSubNamespacedEntityForm($overwrite)
     {
-        $generator = new DoctrineFormGenerator($this->filesystem);
+        $generator = new DoctrineFormGenerator();
         $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
 
-        $bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $bundle->expects($this->any())->method('getPath')->will($this->returnValue($this->tmpDir));
-        $bundle->expects($this->any())->method('getNamespace')->will($this->returnValue('Foo\BarBundle'));
 
         $metadata = $this->getMockBuilder('Doctrine\ORM\Mapping\ClassMetadataInfo')->disableOriginalConstructor()->getMock();
         $metadata->identifier = array('id');
@@ -117,6 +112,19 @@ class DoctrineFormGeneratorTest extends GeneratorTest
         );
         $metadata->associationMappings = $metadata->fieldMappings;
 
-        $generator->generate($bundle, 'Blog\Post', $metadata, $overwrite);
+        $generator->generate($this->getKernel(), 'Blog\Post', $metadata, $overwrite);
+    }
+
+    protected function getKernel()
+    {
+
+        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\KernelInterface')->getMock();
+        $kernel
+            ->expects($this->any())
+            ->method('getRootDir')
+            ->will($this->returnValue($this->tmpDir))
+        ;
+
+        return $kernel;
     }
 }

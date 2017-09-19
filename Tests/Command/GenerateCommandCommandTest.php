@@ -24,13 +24,11 @@ class GenerateCommandCommandTest extends GenerateCommandTest
      */
     public function testInteractiveCommand($options, $input, $expected)
     {
-        list($bundle, $name) = $expected;
-
         $generator = $this->getGenerator();
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getBundle(), $name)
+            ->with($this->getKernel(), $expected)
         ;
 
         $tester = new CommandTester($command = $this->getCommand($generator));
@@ -43,26 +41,14 @@ class GenerateCommandCommandTest extends GenerateCommandTest
         return array(
             array(
                 array(),
-                "FooBarBundle\napp:foo-bar\n",
-                array('FooBarBundle', 'app:foo-bar'),
-            ),
-
-            array(
-                array('bundle' => 'FooBarBundle'),
                 "app:foo-bar\n",
-                array('FooBarBundle', 'app:foo-bar'),
+                'app:foo-bar',
             ),
 
             array(
                 array('name' => 'app:foo-bar'),
-                "FooBarBundle\n",
-                array('FooBarBundle', 'app:foo-bar'),
-            ),
-
-            array(
-                array('bundle' => 'FooBarBundle', 'name' => 'app:foo-bar'),
                 '',
-                array('FooBarBundle', 'app:foo-bar'),
+                'app:foo-bar',
             ),
         );
     }
@@ -72,13 +58,11 @@ class GenerateCommandCommandTest extends GenerateCommandTest
      */
     public function testNonInteractiveCommand($options, $expected)
     {
-        list($bundle, $name) = $expected;
-
         $generator = $this->getGenerator();
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getBundle(), $name)
+            ->with($this->getKernel(), $expected)
         ;
 
         $tester = new CommandTester($command = $this->getCommand($generator));
@@ -89,8 +73,8 @@ class GenerateCommandCommandTest extends GenerateCommandTest
     {
         return array(
             array(
-                array('bundle' => 'FooBarBundle', 'name' => 'app:my-command'),
-                array('FooBarBundle', 'app:my-command'),
+                array('name' => 'app:my-command'),
+                'app:my-command',
             ),
         );
     }
@@ -138,24 +122,5 @@ class GenerateCommandCommandTest extends GenerateCommandTest
             ->setMethods(array('generate'))
             ->getMock()
         ;
-    }
-
-    protected function getBundle()
-    {
-        if (null == $this->bundle) {
-            $this->setBundle();
-        }
-
-        return $this->bundle;
-    }
-
-    protected function setBundle()
-    {
-        $bundle = $this->getMockBuilder('Symfony\Component\HttpKernel\Bundle\BundleInterface')->getMock();
-        $bundle->expects($this->any())->method('getPath')->will($this->returnValue(''));
-        $bundle->expects($this->any())->method('getName')->will($this->returnValue('FooBarBundle'));
-        $bundle->expects($this->any())->method('getNamespace')->will($this->returnValue('Foo\BarBundle'));
-
-        $this->bundle = $bundle;
     }
 }

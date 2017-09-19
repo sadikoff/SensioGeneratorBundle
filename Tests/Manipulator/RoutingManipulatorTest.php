@@ -65,15 +65,15 @@ class RoutingManipulatorTest extends \PHPUnit_Framework_TestCase
         $file = tempnam($tmpDir, 'routing');
 
         $routing = <<<DATA
-acme_demo:
-    resource: "@AcmeDemoBundle/Controller/"
+controllers:
+    resource: "../src/Controller/"
     type:     annotation
 DATA;
 
         file_put_contents($file, $routing);
 
         $manipulator = new RoutingManipulator($file);
-        $this->assertTrue($manipulator->hasResourceInAnnotation('AcmeDemoBundle'));
+        $this->assertTrue($manipulator->hasResourceInAnnotation());
     }
 
     public function testHasResourceInAnnotationReturnFalseIfOnlyOneControllerDefined()
@@ -83,14 +83,14 @@ DATA;
         $file = tempnam($tmpDir, 'routing');
 
         $routing = <<<DATA
-acme_demo_post:
-    resource: "@AcmeDemoBundle/Controller/PostController.php"
+post_controller:
+    resource: "../src/Controller/PostController.php"
     type:     annotation
 DATA;
 
         file_put_contents($file, $routing);
 
         $manipulator = new RoutingManipulator($file);
-        $this->assertFalse($manipulator->hasResourceInAnnotation('AcmeDemoBundle'));
+        $this->assertFalse($manipulator->hasResourceInAnnotation());
     }
 }

@@ -20,6 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Console\Question\Question;
 use Doctrine\DBAL\Types\Type;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Initializes a Doctrine entity inside a bundle.
@@ -35,36 +36,35 @@ class GenerateDoctrineEntityCommand extends GenerateDoctrineCommand
             ->setAliases(array('generate:doctrine:entity'))
             ->setDescription('Generates a new Doctrine entity inside a bundle')
             ->addArgument('entity', InputArgument::OPTIONAL, 'The entity class name to initialize (shortcut notation)')
-            ->addOption('entity', null, InputOption::VALUE_OPTIONAL, 'The entity class name to initialize (shortcut notation)')
             ->addOption('fields', null, InputOption::VALUE_REQUIRED, 'The fields to create with the new entity')
             ->addOption('format', null, InputOption::VALUE_REQUIRED, 'Use the format for configuration files (php, xml, yml, or annotation)', 'annotation')
             ->setHelp(<<<EOT
 The <info>%command.name%</info> task generates a new Doctrine
 entity inside a bundle:
 
-<info>php %command.full_name% AcmeBlogBundle:Blog/Post</info>
+<info>php %command.full_name% Blog/Post</info>
 
 The above command would initialize a new entity in the following entity
-namespace <info>Acme\BlogBundle\Entity\Blog\Post</info>.
+namespace <info>App\Entity\Blog\Post</info>.
 
 You can also optionally specify the fields you want to generate in the new
 entity:
 
-<info>php %command.full_name% AcmeBlogBundle:Blog/Post --fields="title:string(255) body:text"</info>
+<info>php %command.full_name% Blog/Post --fields="title:string(255) body:text"</info>
 
 By default, the command uses annotations for the mapping information; change it
 with <comment>--format</comment>:
 
-<info>php %command.full_name% AcmeBlogBundle:Blog/Post --format=yml</info>
+<info>php %command.full_name% Blog/Post --format=yml</info>
 
 To deactivate the interaction mode, simply use the <comment>--no-interaction</comment> option or its
 alias <comment>-n</comment>, without forgetting to pass all needed options:
 
-<info>php %command.full_name% AcmeBlogBundle:Blog/Post -n --format=annotation --fields="title:string(255) body:text"</info>
+<info>php %command.full_name% Blog/Post -n --format=annotation --fields="title:string(255) body:text"</info>
 
 This also has support for passing field specific attributes:
 
-<info>php %command.full_name% AcmeBlogBundle:Blog/Post -n --format=annotation --fields="title:string(length=255 nullable=true unique=true) body:text ranking:decimal(precision=10 scale=0)"</info>
+<info>php %command.full_name% Blog/Post -n --format=annotation --fields="title:string(length=255 nullable=true unique=true) body:text ranking:decimal(precision=10 scale=0)"</info>
 EOT
         );
     }
@@ -76,25 +76,20 @@ EOT
     {
         $questionHelper = $this->getQuestionHelper();
 
-        // BC to be removed in 4.0
-        if (!$input->isInteractive() && $input->hasOption('entity') && $entityOption = $input->getOption('entity')) {
-            @trigger_error('Using the "--entity" option has been deprecated since version 3.0 and will be removed in 4.0. Pass it as argument instead.', E_USER_DEPRECATED);
-
-            $input->setArgument('entity', $entityOption);
-        }
-
         $entity = Validators::validateEntityName($input->getArgument('entity'));
-        list($bundle, $entity) = $this->parseShortcutNotation($entity);
+
+        $entity = str_replace('/', '\\', $entity);
+
         $format = Validators::validateFormat($input->getOption('format'));
         $fields = $this->parseFields($input->getOption('fields'));
 
         $questionHelper->writeSection($output, 'Entity generation');
 
-        $bundle = $this->getContainer()->get('kernel')->getBundle($bundle);
+        $kernel = $this->getContainer()->get('kernel');
 
         /** @var DoctrineEntityGenerator $generator */
         $generator = $this->getGenerator();
-        $generatorResult = $generator->generate($bundle, $entity, $format, array_values($fields));
+        $generatorResult = $generator->generate($kernel, $entity, $format, array_values($fields));
 
         $output->writeln(sprintf(
             '> Generating entity class <info>%s</info>: <comment>OK!</comment>',
@@ -125,25 +120,16 @@ EOT
             'This command helps you generate Doctrine2 entities.',
             '',
             'First, you need to give the entity name you want to generate.',
-            'You must use the shortcut notation like <comment>AcmeBlogBundle:Post</comment>.',
+            'You must use the shortcut notation like <comment>Post</comment>.',
             '',
         ));
-
-        if ($input->hasOption('entity') && $entityOption = $input->getOption('entity')) {
-            @trigger_error('Using the "--entity" option has been deprecated since version 3.0 and will be removed in 4.0. Pass it as argument instead.', E_USER_DEPRECATED);
-
-            $input->setArgument('entity', $entityOption);
-        }
-
-        $bundleNames = array_keys($this->getContainer()->get('kernel')->getBundles());
 
         while (true) {
             $question = new Question($questionHelper->getQuestion('The Entity shortcut name', $input->getArgument('entity')), $input->getArgument('entity'));
             $question->setValidator(array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateEntityName'));
-            $question->setAutocompleterValues($bundleNames);
             $entity = $questionHelper->ask($input, $output, $question);
 
-            list($bundle, $entity) = $this->parseShortcutNotation($entity);
+            $entity = str_replace('/', '\\', $entity);
 
             // check reserved words
             if ($this->getGenerator()->isReservedKeyword($entity)) {
@@ -151,19 +137,16 @@ EOT
                 continue;
             }
 
-            try {
-                $b = $this->getContainer()->get('kernel')->getBundle($bundle);
+            $k = $this->getContainer()->get('kernel');
 
-                if (!file_exists($b->getPath().'/Entity/'.str_replace('\\', '/', $entity).'.php')) {
-                    break;
-                }
-
-                $output->writeln(sprintf('<bg=red>Entity "%s:%s" already exists</>.', $bundle, $entity));
-            } catch (\Exception $e) {
-                $output->writeln(sprintf('<bg=red>Bundle "%s" does not exist.</>', $bundle));
+            if (!file_exists($k->getRootDir().'/Entity/'.str_replace('\\', '/', $entity).'.php')) {
+                break;
             }
+
+            $output->writeln(sprintf('<bg=red>Entity "%s" already exists</>.', $entity));
         }
-        $input->setArgument('entity', $bundle.':'.$entity);
+
+        $input->setArgument('entity', $entity);
 
         // format
         $output->writeln(array(
@@ -174,7 +157,7 @@ EOT
 
         $formats = array('yml', 'xml', 'php', 'annotation');
 
-        $question = new Question($questionHelper->getQuestion('Configuration format (yml, xml, php, or annotation)', $input->getOption('format')), $input->getOption('format'));
+        $question = new Question($questionHelper->getQuestion('Configuration format (yaml, xml, php, or annotation)', $input->getOption('format')), $input->getOption('format'));
         $question->setValidator(array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateFormat'));
         $question->setAutocompleterValues($formats);
         $format = $questionHelper->ask($input, $output, $question);
@@ -409,6 +392,6 @@ EOT
 
     protected function createGenerator()
     {
-        return new DoctrineEntityGenerator($this->getContainer()->get('filesystem'), $this->getContainer()->get('doctrine'));
+        return new DoctrineEntityGenerator($this->getContainer()->get('doctrine'));
     }
 }

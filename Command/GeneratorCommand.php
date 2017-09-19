@@ -50,7 +50,7 @@ abstract class GeneratorCommand extends ContainerAwareCommand
     {
         $skeletonDirs = array();
 
-        if (is_dir($dir = $kernel->getRootdir().'/Resources/SensioGeneratorBundle/skeleton')) {
+        if (null !== $kernel && is_dir($dir = $kernel->getRootdir().'/Resources/SensioGeneratorBundle/skeleton')) {
             $skeletonDirs[] = $dir;
         }
 
