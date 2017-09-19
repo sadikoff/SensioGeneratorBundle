@@ -1,3 +1,4 @@
+.env.dist
 phpunit.xml
 vendor
 composer.lock
