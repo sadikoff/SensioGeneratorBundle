@@ -101,7 +101,7 @@ class ControllerGeneratorTest extends GeneratorTest
 
         $files = array(
             '../templates/Page/showPage.html.php',
-            '../config/routes.yaml',
+            '../config/routes/page.yaml',
         );
         foreach ($files as $file) {
             $this->assertTrue(file_exists($this->tmpDir.'/'.$file), $file.' has been generated');
@@ -115,7 +115,7 @@ class ControllerGeneratorTest extends GeneratorTest
         $content = file_get_contents($this->tmpDir.'/../templates/Page/showPage.html.php');
         $this->assertContains('Page:showPage', $content);
 
-        $content = file_get_contents($this->tmpDir.'/../config/routes.yaml');
+        $content = file_get_contents($this->tmpDir.'/../config/routes/page.yaml');
         $this->assertContains("show_page:\n    path:     /{slug}\n    defaults: { _controller: Page:showPage }", $content);
     }
 

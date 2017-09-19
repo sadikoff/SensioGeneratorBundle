@@ -61,7 +61,7 @@ class GenerateControllerCommandTest extends GenerateCommandTest
                 ),
             ))),
 
-            array(array('--route-format' => 'yaml', '--template-format' => 'php', '--actions' => array('showAction:/{slug}:article.html.php')), 'Post', array('Post', 'yaml', 'php', array(
+            array(array('--route-format' => 'xml', '--template-format' => 'php', '--actions' => array('showAction:/{slug}:article.html.php')), 'Post', array('Post', 'xml', 'php', array(
                 'showAction' => array(
                     'name' => 'showAction',
                     'route' => '/{slug}',
@@ -115,7 +115,7 @@ class GenerateControllerCommandTest extends GenerateCommandTest
                     'template' => 'default',
                 ),
             ))),
-            array(array('--controller' => 'Post', '--route-format' => 'yaml', '--template-format' => 'php', '--actions' => array('showAction::')), array('Post', 'yaml', 'php', array(
+            array(array('--controller' => 'Post', '--route-format' => 'xml', '--template-format' => 'php', '--actions' => array('showAction::')), array('Post', 'xml', 'php', array(
                 'showAction' => array(
                     'name' => 'showAction',
                     'route' => '/show',

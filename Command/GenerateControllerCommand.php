@@ -38,7 +38,7 @@ class GenerateControllerCommand extends GeneratorCommand
             ->setDescription('Generates a controller')
             ->setDefinition(array(
                 new InputOption('controller', '', InputOption::VALUE_REQUIRED, 'The name of the controller to create'),
-                new InputOption('route-format', '', InputOption::VALUE_REQUIRED, 'The format that is used for the routing (yaml, annotation)', 'annotation'),
+                new InputOption('route-format', '', InputOption::VALUE_REQUIRED, 'The format that is used for the routing (yaml, xml, php, annotation)', 'annotation'),
                 new InputOption('template-format', '', InputOption::VALUE_REQUIRED, 'The format that is used for templating (twig, php)', 'twig'),
                 new InputOption('actions', '', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'The actions in the controller'),
             ))
@@ -153,7 +153,7 @@ EOT
             'Determine the format to use for the routing.',
             '',
         ));
-        $question = new Question($questionHelper->getQuestion('Routing format (yaml, annotation)', $defaultFormat), $defaultFormat);
+        $question = new Question($questionHelper->getQuestion('Routing format (yaml, xml, php, annotation)', $defaultFormat), $defaultFormat);
         $question->setValidator(array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateFormat'));
         $routeFormat = $questionHelper->ask($input, $output, $question);
         $input->setOption('route-format', $routeFormat);

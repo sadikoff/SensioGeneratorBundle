@@ -60,7 +60,7 @@ class ControllerGenerator extends Generator
             $template = $actions[$i]['template'];
             if ('default' == $template) {
                 @trigger_error('The use of the "default" keyword is deprecated. Use the real template name instead.', E_USER_DEPRECATED);
-                $template = $controller.':'.
+                $template = $controller.'\\'.
                     strtolower(preg_replace(array('/([A-Z]+)([A-Z][a-z])/', '/([a-z\d])([A-Z])/'), array('\\1_\\2', '\\1_\\2'), strtr(substr($action['name'], 0, -6), '_', '.')))
                     .'.html.'.$templateFormat;
             }
@@ -87,15 +87,17 @@ class ControllerGenerator extends Generator
             return true;
         }
 
-        $file = $kernel->getRootDir().'/../config/routes.'.$format;
+        $controllerName = strtolower(str_replace('\\', '_',$controller));
+
+        $file = $kernel->getRootDir().'/../config/routes/'.$controllerName.'.'.$format;
         if (file_exists($file)) {
             $content = file_get_contents($file);
-        } elseif (!is_dir($dir = $kernel->getRootDir().'/../config')) {
+        } elseif (!is_dir($dir = $kernel->getRootDir().'/../config/routes')) {
             self::mkdir($dir);
         }
 
         $controller = $controller.':'.$action['basename'];
-        $name = strtolower(preg_replace('/([A-Z])/', '_\\1', $action['basename']));
+        $name = $controllerName.'_'.strtolower(preg_replace('/([A-Z])/', '_\\1', $action['basename']));
 
         if ('yaml' == $format) {
             // yaml
@@ -109,6 +111,53 @@ class ControllerGenerator extends Generator
                 $action['route'],
                 $controller
             );
+        } elseif ('xml' == $format) {
+            // xml
+            if (!isset($content)) {
+                // new file
+                $content = <<<EOT
+<?xml version="1.0" encoding="UTF-8" ?>
+<routes xmlns="http://symfony.com/schema/routing"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+</routes>
+EOT;
+            }
+            $sxe = simplexml_load_string($content);
+            $route = $sxe->addChild('route');
+            $route->addAttribute('id', $name);
+            $route->addAttribute('path', $action['route']);
+            $default = $route->addChild('default', $controller);
+            $default->addAttribute('key', '_controller');
+            $dom = new \DOMDocument('1.0');
+            $dom->preserveWhiteSpace = false;
+            $dom->formatOutput = true;
+            $dom->loadXML($sxe->asXML());
+            $content = $dom->saveXML();
+        } elseif ('php' == $format) {
+            // php
+            if (isset($content)) {
+                // edit current file
+                $pointer = strpos($content, 'return');
+                if (!preg_match('/(\$[^ ]*).*?new RouteCollection\(\)/', $content, $collection) || false === $pointer) {
+                    throw new \RuntimeException('Routing.php file is not correct, please initialize RouteCollection.');
+                }
+                $content = substr($content, 0, $pointer);
+                $content .= sprintf("%s->add('%s', new Route('%s', array(", $collection[1], $name, $action['route']);
+                $content .= sprintf("\n    '_controller' => '%s',", $controller);
+                $content .= "\n)));\n\nreturn ".$collection[1].';';
+            } else {
+                // new file
+                $content = <<<EOT
+<?php
+use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Routing\Route;
+\$collection = new RouteCollection();
+EOT;
+                $content .= sprintf("\n\$collection->add('%s', new Route('%s', array(", $name, $action['route']);
+                $content .= sprintf("\n    '_controller' => '%s',", $controller);
+                $content .= "\n)));\n\nreturn \$collection;";
+            }
         }
 
         $flink = fopen($file, 'w');
