@@ -82,8 +82,6 @@ class DoctrineFormGenerator extends Generator
             'entity_class' => $entityClass,
             'form_class' => $this->className,
             'form_type_name' => strtolower(str_replace('\\', '_', $namespace).($parts ? '_' : '').implode('_', $parts).'_'.substr($this->className, 0, -4)),
-            // BC with Symfony 2.7
-            'get_name_required' => !method_exists('Symfony\Component\Form\AbstractType', 'getBlockPrefix'),
         ));
     }
 
