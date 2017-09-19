@@ -119,7 +119,7 @@ EOT
         $kernel = $this->getContainer()->get('kernel');
 
         try {
-            $metadata = $this->getContainer()->get('doctrine')->getManager()->getClassMetadata('App\\Entity\\'.$entity);;
+            $metadata = $this->getContainer()->get('doctrine')->getManager()->getClassMetadata('App\\Entity\\'.$entity);
         } catch (\Exception $e) {
             throw new \RuntimeException(
                 sprintf(

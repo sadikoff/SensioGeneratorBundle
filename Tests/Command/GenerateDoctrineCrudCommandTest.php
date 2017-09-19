@@ -141,7 +141,7 @@ DATA;
 
     public function testAddACrudWithOneAlreadyDefined()
     {
-        $rootDir = $this->getContainer()->getParameter('kernel.root_dir');
+        $rootDir = $this->getKernel()->getRootDir();
 
         $routing = <<<DATA
 acme_blog:
@@ -149,8 +149,8 @@ acme_blog:
     type:     annotation
 DATA;
 
-        @mkdir($rootDir.'/config', 0777, true);
-        file_put_contents($rootDir.'/config/routes.yaml', $routing);
+        @mkdir($rootDir.'/../config', 0777, true);
+        file_put_contents($rootDir.'/../config/routes.yaml', $routing);
 
         $options = array();
         $input = "Blog/Post\ny\nannotation\n/foobar\n";
@@ -171,7 +171,7 @@ DATA;
 
         $expected = '../src/Controller/PostController.php';
 
-        $this->assertContains($expected, file_get_contents($rootDir.'/config/routes.yaml'));
+        $this->assertContains($expected, file_get_contents($rootDir.'/../config/routes.yaml'));
     }
 
     protected function getCommand($generator)

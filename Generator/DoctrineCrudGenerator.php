@@ -148,10 +148,14 @@ class DoctrineCrudGenerator extends Generator
         $entityClass = array_pop($parts);
         $entityNamespace = implode('\\', $parts);
 
-        $target = sprintf(
+        $target = $entityNamespace ? sprintf(
             '%s/Controller/%s/%sController.php',
             $dir,
             str_replace('\\', '/', $entityNamespace),
+            $entityClass
+        ) : sprintf(
+            '%s/Controller/%sController.php',
+            $dir,
             $entityClass
         );
 
