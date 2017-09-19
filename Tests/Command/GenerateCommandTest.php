@@ -25,7 +25,7 @@ abstract class GenerateCommandTest extends \PHPUnit_Framework_TestCase
     {
         if (null !== $this->kernel) {
             $fs = new Filesystem();
-            //$fs->remove(dirname($this->kernel->getRootDir()));
+            $fs->remove(dirname($this->kernel->getRootDir()));
         }
     }
 

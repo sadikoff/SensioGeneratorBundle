@@ -203,18 +203,6 @@ EOT
             '',
         ));
 
-        $templateNameValidator = function ($name) {
-            if ('default' == $name) {
-                return $name;
-            }
-
-            if (2 != substr_count($name, ':')) {
-                throw new \InvalidArgumentException(sprintf('Template name "%s" does not have 2 colons', $name));
-            }
-
-            return $name;
-        };
-
         $actions = $this->parseActions($input->getOption('actions'));
 
         while (true) {
@@ -222,7 +210,7 @@ EOT
             $output->writeln('');
             $question = new Question($questionHelper->getQuestion('New action name (press <return> to stop adding actions)', null), null);
             $question->setValidator(function ($name) use ($actions) {
-                if (null == $name) {
+                if (null === $name) {
                     return $name;
                 }
 

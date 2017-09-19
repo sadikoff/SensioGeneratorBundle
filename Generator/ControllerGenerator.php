@@ -22,12 +22,6 @@ use Symfony\Component\HttpKernel\KernelInterface;
  */
 class ControllerGenerator extends Generator
 {
-    private $filesystem;
-
-    public function __construct(Filesystem $filesystem)
-    {
-        $this->filesystem = $filesystem;
-    }
 
     public function generate(KernelInterface $kernel, $controller, $routeFormat, $templateFormat, array $actions = array())
     {
@@ -53,7 +47,7 @@ class ControllerGenerator extends Generator
         );
 
         if (count($controllerParts)) {
-            $parameters = array_merge($parameters, ['sub_namespace' => implode('\\', $controllerParts)]);
+            $parameters = array_merge($parameters, array('sub_namespace' => implode('\\', $controllerParts)));
         }
 
         foreach ($actions as $i => $action) {
