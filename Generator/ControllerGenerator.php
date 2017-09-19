@@ -183,13 +183,18 @@ EOT;
 
     protected function parseLogicalTemplateName($logicalName, $part = '')
     {
-        if (1 !== substr_count($logicalName, '\\')) {
-            throw new \RuntimeException(sprintf('The given template name ("%s") is not correct (it must contain one backslash).', $logicalName));
+        $data = [];
+
+        if (1 == substr_count($logicalName, '\\')) {
+            list($data['controller'], $data['template']) = explode('\\', $logicalName);
+        } elseif (1 < substr_count($logicalName, '\\')) {
+            $t = explode('\\', $logicalName);
+
+            $data['template'] = array_pop($t);
+            $data['controller'] = implode('\\', $t);
+        } else {
+            throw new \RuntimeException(sprintf('The given template name ("%s") is not correct (it must contain at least one backslash).', $logicalName));
         }
-
-        $data = array();
-
-        list($data['controller'], $data['template']) = explode('\\', $logicalName);
 
         return $part ? $data[$part] : $data;
     }
