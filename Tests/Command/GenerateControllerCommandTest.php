@@ -46,18 +46,18 @@ class GenerateControllerCommandTest extends GenerateCommandTest
 
             array(array(), "Post\nyaml\nphp\n", array('Post', 'yaml', 'php', array())),
 
-            array(array(), "Post\nyaml\nphp\nshowAction\n\n\ngetListAction\n/_getlist/{max}\nLists:post.html.php\n", array('Post', 'yaml', 'php', array(
+            array(array(), "Post\nyaml\nphp\nshowAction\n\n\ngetListAction\n/_getlist/{max}\nLists\post.html.php\n", array('Post', 'yaml', 'php', array(
                 'showAction' => array(
                     'name' => 'showAction',
                     'route' => '/show',
                     'placeholders' => array(),
-                    'template' => 'Post:show.html.php',
+                    'template' => 'Post\show.html.php',
                 ),
                 'getListAction' => array(
                     'name' => 'getListAction',
                     'route' => '/_getlist/{max}',
                     'placeholders' => array('max'),
-                    'template' => 'Lists:post.html.php',
+                    'template' => 'Lists\post.html.php',
                 ),
             ))),
 
@@ -95,7 +95,7 @@ class GenerateControllerCommandTest extends GenerateCommandTest
         return array(
             array(array('--controller' => 'Post'), array('Post', 'annotation', 'twig', array())),
             array(array('--controller' => 'Post', '--route-format' => 'yaml', '--template-format' => 'php'), array('Post', 'yaml', 'php', array())),
-            array(array('--controller' => 'Post', '--actions' => array('showAction getListAction:/_getlist/{max}:List:post.html.twig createAction:/admin/create')), array('Post', 'annotation', 'twig', array(
+            array(array('--controller' => 'Post', '--actions' => array('showAction getListAction:/_getlist/{max}:List\post.html.twig createAction:/admin/create')), array('Post', 'annotation', 'twig', array(
                 'showAction' => array(
                     'name' => 'showAction',
                     'route' => '/show',
@@ -106,7 +106,7 @@ class GenerateControllerCommandTest extends GenerateCommandTest
                     'name' => 'getListAction',
                     'route' => '/_getlist/{max}',
                     'placeholders' => array('max'),
-                    'template' => 'List:post.html.twig',
+                    'template' => 'List\post.html.twig',
                 ),
                 'createAction' => array(
                     'name' => 'createAction',

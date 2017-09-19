@@ -236,7 +236,7 @@ EOT
             $placeholders = $this->getPlaceholdersFromRoute($route);
 
             // template
-            $defaultTemplate = $input->getOption('controller').':'.
+            $defaultTemplate = $input->getOption('controller').'\\'.
                 strtolower(preg_replace(array('/([A-Z]+)([A-Z][a-z])/', '/([a-z\d])([A-Z])/'), array('\\1_\\2', '\\1_\\2'), strtr(substr($actionName, 0, -6), '_', '.')))
                 .'.html.'.$input->getOption('template-format');
             $question = new Question($questionHelper->getQuestion('Template name (optional)', $defaultTemplate), $defaultTemplate);
@@ -286,7 +286,7 @@ EOT
             }
 
             // template
-            $template = (0 < count($data) && '' != $data[0]) ? implode(':', $data) : 'default';
+            $template = (0 < count($data) && '' != $data[0]) ? implode('\\', $data) : 'default';
 
             $parsedActions[$name] = array(
                 'name' => $name,
@@ -309,12 +309,12 @@ EOT
 
     protected function createGenerator()
     {
-        return new ControllerGenerator($this->getContainer()->get('filesystem'));
+        return new ControllerGenerator();
     }
 
     private function tryUpdateAnnotationRouting($controller)
     {
-        $routing = new RoutingManipulator($this->getContainer()->getParameter('kernel.root_dir').'/config/routing.yml');
+        $routing = new RoutingManipulator($this->getContainer()->get('kernel')->getRootDir().'/../config/routes.yaml');
 
         if ($routing->hasResourceInAnnotation()) {
             return;

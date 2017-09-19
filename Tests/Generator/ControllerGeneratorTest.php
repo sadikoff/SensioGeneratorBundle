@@ -54,13 +54,13 @@ class ControllerGeneratorTest extends GeneratorTest
                 'name' => 'showPageAction',
                 'route' => '/{id}/{slug}',
                 'placeholders' => array('id', 'slug'),
-                'template' => 'Page:show_page.html.twig',
+                'template' => 'Page\show_page.html.twig',
             ),
             1 => array(
                 'name' => 'getListOfPagesAction',
                 'route' => '/_get-pages/{max_count}',
                 'placeholders' => array('max_count'),
-                'template' => 'Page:pages_list.html.twig',
+                'template' => 'Page\pages_list.html.twig',
             ),
         );
 
@@ -78,8 +78,8 @@ class ControllerGeneratorTest extends GeneratorTest
         $strings = array(
             'public function showPageAction($id, $slug)',
             'public function getListOfPagesAction($max_count)',
-            'return $this->render(\'Page:show_page.html.twig\', array(',
-            'return $this->render(\'Page:pages_list.html.twig\', array(',
+            'return $this->render(\'Page\show_page.html.twig\', array(',
+            'return $this->render(\'Page\pages_list.html.twig\', array(',
         );
         foreach ($strings as $string) {
             $this->assertContains($string, $content);
@@ -95,7 +95,7 @@ class ControllerGeneratorTest extends GeneratorTest
                 'name' => 'showPageAction',
                 'route' => '/{slug}',
                 'placeholders' => array('slug'),
-                'template' => 'Page:showPage.html.php',
+                'template' => 'Page\showPage.html.php',
             ),
         ));
 
@@ -110,18 +110,18 @@ class ControllerGeneratorTest extends GeneratorTest
         $content = file_get_contents($this->tmpDir.'/Controller/PageController.php');
         $this->assertNotContains('@Route()', $content, 'Routing is done via a yml file');
 
-        $this->assertContains("return \$this->render('Page:showPage.html.php', array(", $content, 'Controller renders template');
+        $this->assertContains("return \$this->render('Page\showPage.html.php', array(", $content, 'Controller renders template');
 
         $content = file_get_contents($this->tmpDir.'/../templates/Page/showPage.html.php');
         $this->assertContains('Page:showPage', $content);
 
         $content = file_get_contents($this->tmpDir.'/../config/routes/page.yaml');
-        $this->assertContains("show_page:\n    path:     /{slug}\n    defaults: { _controller: Page:showPage }", $content);
+        $this->assertContains("show_page:\n    path:     /{slug}\n    defaults: { _controller: App\Controller\Page:showPageAction }", $content);
     }
 
     protected function getGenerator()
     {
-        $generator = new ControllerGenerator($this->filesystem);
+        $generator = new ControllerGenerator();
         $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
 
         return $generator;

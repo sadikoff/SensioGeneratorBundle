@@ -96,7 +96,7 @@ class ControllerGenerator extends Generator
             self::mkdir($dir);
         }
 
-        $controller = $controller.':'.$action['basename'];
+        $controller = NamespaceExtractor::from($kernel).'\\Controller\\'.$controller.':'.$action['name'];
         $name = $controllerName.'_'.strtolower(preg_replace('/([A-Z])/', '_\\1', $action['basename']));
 
         if ('yaml' == $format) {
@@ -183,13 +183,13 @@ EOT;
 
     protected function parseLogicalTemplateName($logicalName, $part = '')
     {
-        if (1 !== substr_count($logicalName, ':')) {
-            throw new \RuntimeException(sprintf('The given template name ("%s") is not correct (it must contain one colon).', $logicalName));
+        if (1 !== substr_count($logicalName, '\\')) {
+            throw new \RuntimeException(sprintf('The given template name ("%s") is not correct (it must contain one backslash).', $logicalName));
         }
 
         $data = array();
 
-        list($data['controller'], $data['template']) = explode(':', $logicalName);
+        list($data['controller'], $data['template']) = explode('\\', $logicalName);
 
         return $part ? $data[$part] : $data;
     }
