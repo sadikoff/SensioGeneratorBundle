@@ -12,7 +12,6 @@
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
 use Sensio\Bundle\GeneratorBundle\Extractor\NamespaceExtractor;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
