@@ -208,7 +208,7 @@ EOT
         $controller = $input->getOption('controller');
         $controllerParts = explode('\\', $controller);
         array_pop($controllerParts);
-        $routeNamespacePrefix = count($controllerParts) ? '/'.implode('/', $controllerParts) : '';
+        $routeNamespacePrefix = count($controllerParts) ? strtolower('/'.implode('/', $controllerParts)) : '';
 
         while (true) {
             // name
