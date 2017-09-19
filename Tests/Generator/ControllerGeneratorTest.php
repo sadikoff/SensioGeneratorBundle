@@ -99,9 +99,20 @@ class ControllerGeneratorTest extends GeneratorTest
             ),
         ));
 
+        $generator->generate($this->getKernel(), 'Backend\Page', 'yaml', 'php', array(
+            1 => array(
+                'name' => 'showPageAction',
+                'route' => '/backend/{slug}',
+                'placeholders' => array('slug'),
+                'template' => 'Backend\Page\showPage.html.php',
+            ),
+        ));
+
         $files = array(
             '../templates/Page/showPage.html.php',
             '../config/routes/page.yaml',
+            '../templates/Backend/Page/showPage.html.php',
+            '../config/routes/backend_page.yaml',
         );
         foreach ($files as $file) {
             $this->assertTrue(file_exists($this->tmpDir.'/'.$file), $file.' has been generated');
@@ -109,14 +120,23 @@ class ControllerGeneratorTest extends GeneratorTest
 
         $content = file_get_contents($this->tmpDir.'/Controller/PageController.php');
         $this->assertNotContains('@Route()', $content, 'Routing is done via a yml file');
-
         $this->assertContains("return \$this->render('Page\showPage.html.php', array(", $content, 'Controller renders template');
+
+        $content = file_get_contents($this->tmpDir.'/Controller/Backend/PageController.php');
+        $this->assertNotContains('@Route()', $content, 'Routing is done via a yml file');
+        $this->assertContains("return \$this->render('Backend\Page\showPage.html.php', array(", $content, 'Controller renders template');
 
         $content = file_get_contents($this->tmpDir.'/../templates/Page/showPage.html.php');
         $this->assertContains('Page:showPage', $content);
 
+        $content = file_get_contents($this->tmpDir.'/../templates/Backend/Page/showPage.html.php');
+        $this->assertContains('Backend\Page:showPage', $content);
+
         $content = file_get_contents($this->tmpDir.'/../config/routes/page.yaml');
-        $this->assertContains("show_page:\n    path:     /{slug}\n    defaults: { _controller: App\Controller\Page:showPageAction }", $content);
+        $this->assertContains("page_show_page:\n    path:     /{slug}\n    defaults: { _controller: App\Controller\PageController:showPageAction }", $content);
+
+        $content = file_get_contents($this->tmpDir.'/../config/routes/backend_page.yaml');
+        $this->assertContains("backend_page_show_page:\n    path:     /backend/{slug}\n    defaults: { _controller: App\Controller\Backend\PageController:showPageAction }", $content);
     }
 
     protected function getGenerator()

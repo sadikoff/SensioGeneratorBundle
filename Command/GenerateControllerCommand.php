@@ -205,6 +205,11 @@ EOT
 
         $actions = $this->parseActions($input->getOption('actions'));
 
+        $controller = $input->getOption('controller');
+        $controllerParts = explode('\\', $controller);
+        array_pop($controllerParts);
+        $routeNamespacePrefix = count($controllerParts) ? '/'.implode('/', $controllerParts) : '';
+
         while (true) {
             // name
             $output->writeln('');
@@ -231,7 +236,8 @@ EOT
             }
 
             // route
-            $question = new Question($questionHelper->getQuestion('Action route', '/'.substr($actionName, 0, -6)), '/'.substr($actionName, 0, -6));
+            $defaultRoute = $routeNamespacePrefix.'/'.substr($actionName, 0, -6);
+            $question = new Question($questionHelper->getQuestion('Action route', $defaultRoute), $defaultRoute);
             $route = $questionHelper->ask($input, $output, $question);
             $placeholders = $this->getPlaceholdersFromRoute($route);
 

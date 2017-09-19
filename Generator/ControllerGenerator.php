@@ -95,7 +95,7 @@ class ControllerGenerator extends Generator
             self::mkdir($dir);
         }
 
-        $controller = NamespaceExtractor::from($kernel).'\\Controller\\'.str_replace('/', '\\', $controller).':'.$action['name'];
+        $controller = NamespaceExtractor::from($kernel).'\\Controller\\'.str_replace('/', '\\', $controller).'Controller:'.$action['name'];
         $name = $controllerName.'_'.strtolower(preg_replace('/([A-Z])/', '_\\1', $action['basename']));
 
         if ('yaml' == $format) {
