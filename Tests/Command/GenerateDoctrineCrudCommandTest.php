@@ -257,11 +257,19 @@ DATA;
             ->will($this->returnValue(array('App' => 'App\Entity')))
         ;
 
+        $classMetaData = $this->getDoctrineMetadata();
+
         $manager = $this->getMockBuilder('Doctrine\ORM\EntityManagerInterface')->getMock();
         $manager
             ->expects($this->any())
             ->method('getConfiguration')
             ->will($this->returnValue($configuration))
+        ;
+
+        $manager
+            ->expects($this->any())
+            ->method('getClassMetadata')
+            ->will($this->returnValue($classMetaData))
         ;
 
         $registry = $this->getMockBuilder('Symfony\Bridge\Doctrine\RegistryInterface')->getMock();

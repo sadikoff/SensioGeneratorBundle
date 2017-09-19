@@ -119,7 +119,7 @@ EOT
         $kernel = $this->getContainer()->get('kernel');
 
         try {
-            $metadata = $this->getEntityMetadata('App\\Entity\\'.$entity);
+            $metadata = $this->getContainer()->get('doctrine')->getManager()->getClassMetadata('App\\Entity\\'.$entity);;
         } catch (\Exception $e) {
             throw new \RuntimeException(
                 sprintf(
@@ -131,7 +131,7 @@ EOT
 
         /** @var DoctrineCrudGenerator $generator */
         $generator = $this->getGenerator($kernel);
-        $generator->generate($kernel, $entity, $metadata[0], $format, $prefix, $withWrite, $forceOverwrite);
+        $generator->generate($kernel, $entity, $metadata, $format, $prefix, $withWrite, $forceOverwrite);
 
         $output->writeln('Generating the CRUD code: <info>OK</info>');
 
@@ -185,7 +185,7 @@ EOT
         $entity = str_replace('/', '\\', $entity);
 
         try {
-            $this->getEntityMetadata('App\\Entity\\'.$entity);
+            $this->getContainer()->get('doctrine')->getManager()->getClassMetadata('App\\Entity\\'.$entity);
         } catch (\Exception $e) {
             throw new \RuntimeException(
                 sprintf(
@@ -269,14 +269,14 @@ EOT
      */
     protected function generateForm($kernel, $entity, $metadata, $forceOverwrite = false)
     {
-        $this->getFormGenerator($kernel)->generate($kernel, $entity, $metadata[0], $forceOverwrite);
+        $this->getFormGenerator($kernel)->generate($kernel, $entity, $metadata, $forceOverwrite);
     }
 
     protected function updateAnnotationRouting(KernelInterface $kernel, $entity)
     {
         $rootDir = $kernel->getRootDir();
 
-        $routing = new RoutingManipulator($rootDir.'/../config/routes.yml');
+        $routing = new RoutingManipulator($rootDir.'/../config/routes.yaml');
 
         if (!$routing->hasResourceInAnnotation()) {
             $parts = explode('\\', $entity);
