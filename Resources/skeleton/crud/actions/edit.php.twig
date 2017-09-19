@@ -17,11 +17,7 @@
     {
 {% block method_body %}
         $deleteForm = $this->createDeleteForm(${{ entity_singularized }});
-        {% if use_form_type_instance -%}
-            $editForm = $this->createForm(new {{ entity_singularized|capitalize }}Type(), ${{ entity_singularized }});
-        {% else -%}
-            $editForm = $this->createForm('{{ namespace }}\Form\{{ entity }}Type', ${{ entity_singularized }});
-        {% endif -%}
+        $editForm = $this->createForm({{ entity_class }}Type::class, ${{ entity_singularized }});
         $editForm->handleRequest($request);
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {

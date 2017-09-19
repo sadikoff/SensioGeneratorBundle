@@ -297,11 +297,9 @@ EOT
         return $prefix;
     }
 
-    protected function createGenerator($kernel = null)
+    protected function createGenerator()
     {
-        return new DoctrineCrudGenerator(
-            $this->getContainer()->getParameter('kernel.root_dir')
-        );
+        return new DoctrineCrudGenerator();
     }
 
     protected function getFormGenerator($kernel = null)

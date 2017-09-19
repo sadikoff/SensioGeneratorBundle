@@ -51,13 +51,6 @@ class DoctrineFormGeneratorTest extends GeneratorTest
         $this->assertContains('\'data_class\' => Post::class', $content);
         $this->assertContains('public function getBlockPrefix()', $content);
         $this->assertContains('return \'app_blog_post\';', $content);
-        if (method_exists('Symfony\Component\Form\AbstractType', 'getBlockPrefix')) {
-            // Symfony >= 2.8
-            $this->assertNotContains('public function getName()', $content);
-        } else {
-            // BC Symfony 2.7
-            $this->assertContains('public function getName()', $content);
-        }
     }
 
     /**

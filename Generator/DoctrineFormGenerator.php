@@ -12,7 +12,6 @@
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
 use Sensio\Bundle\GeneratorBundle\Extractor\NamespaceExtractor;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 
@@ -26,14 +25,6 @@ class DoctrineFormGenerator extends Generator
 {
     private $className;
     private $classPath;
-
-    /**
-     * Constructor.
-     */
-    public function __construct()
-    {
-
-    }
 
     public function getClassName()
     {

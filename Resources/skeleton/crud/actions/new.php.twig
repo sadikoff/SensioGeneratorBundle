@@ -17,11 +17,7 @@
     {
 {% block method_body %}
         ${{ entity_singularized }} = new {{ entity_singularized|capitalize }}();
-        {% if use_form_type_instance -%}
-            $form = $this->createForm(new {{ entity_singularized|capitalize }}Type(), ${{ entity_singularized }});
-        {% else -%}
-            $form = $this->createForm('{{ namespace }}\Form\{{ entity }}Type', ${{ entity_singularized }});
-        {% endif -%}
+        $form = $this->createForm({{ entity_class }}Type::class, ${{ entity_singularized }});
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

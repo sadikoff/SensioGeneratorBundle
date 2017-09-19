@@ -23,7 +23,6 @@ use Doctrine\Common\Inflector\Inflector;
  */
 class DoctrineCrudGenerator extends Generator
 {
-    protected $rootDir;
     protected $routePrefix;
     protected $routeNamePrefix;
     protected $kernel;
@@ -33,14 +32,6 @@ class DoctrineCrudGenerator extends Generator
     protected $metadata;
     protected $format;
     protected $actions;
-
-    /**
-     * @param string     $rootDir
-     */
-    public function __construct($rootDir)
-    {
-        $this->rootDir = $rootDir;
-    }
 
     /**
      * Generate the CRUD controller.
@@ -77,7 +68,7 @@ class DoctrineCrudGenerator extends Generator
 
         $this->generateControllerClass($forceOverwrite);
 
-        $dir = sprintf('%s/../templates/%s', $this->rootDir, $entity);
+        $dir = sprintf('%s/../templates/%s', $kernel->getRootDir(), $entity);
 
         if (!file_exists($dir)) {
             self::mkdir($dir);
@@ -180,8 +171,6 @@ class DoctrineCrudGenerator extends Generator
             'namespace' => NamespaceExtractor::from($this->kernel),
             'entity_namespace' => $entityNamespace,
             'format' => $this->format,
-            // BC with Symfony 2.7
-            'use_form_type_instance' => !method_exists('Symfony\Component\Form\AbstractType', 'getBlockPrefix'),
         ));
     }
 
