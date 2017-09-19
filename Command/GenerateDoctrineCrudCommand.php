@@ -11,6 +11,7 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Command;
 
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,7 +21,6 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Sensio\Bundle\GeneratorBundle\Command\AutoComplete\EntitiesAutoCompleter;
-use Sensio\Bundle\GeneratorBundle\Command\Helper\QuestionHelper;
 use Sensio\Bundle\GeneratorBundle\Generator\DoctrineCrudGenerator;
 use Sensio\Bundle\GeneratorBundle\Generator\DoctrineFormGenerator;
 use Sensio\Bundle\GeneratorBundle\Manipulator\RoutingManipulator;
@@ -41,14 +41,31 @@ class GenerateDoctrineCrudCommand extends GenerateDoctrineCommand
     {
         $this
             ->setName('doctrine:generate:crud')
-            ->setAliases(array('generate:doctrine:crud'))
+            ->setAliases(['generate:doctrine:crud'])
             ->setDescription('Generates a CRUD based on a Doctrine entity')
             ->addArgument('entity', InputArgument::OPTIONAL, 'The entity class name to initialize (shortcut notation)')
             ->addOption('route-prefix', null, InputOption::VALUE_REQUIRED, 'The route prefix')
-            ->addOption('with-write', null, InputOption::VALUE_NONE, 'Whether or not to generate create, new and delete actions')
-            ->addOption('format', null, InputOption::VALUE_REQUIRED, 'The format used for configuration files (php, xml, yml, or annotation)', 'annotation')
-            ->addOption('overwrite', null, InputOption::VALUE_NONE, 'Overwrite any existing controller or form class when generating the CRUD contents')
-            ->setHelp(<<<EOT
+            ->addOption(
+                'with-write',
+                null,
+                InputOption::VALUE_NONE,
+                'Whether or not to generate create, new and delete actions'
+            )
+            ->addOption(
+                'format',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'The format used for configuration files (php, xml, yml, or annotation)',
+                'annotation'
+            )
+            ->addOption(
+                'overwrite',
+                null,
+                InputOption::VALUE_NONE,
+                'Overwrite any existing controller or form class when generating the CRUD contents'
+            )
+            ->setHelp(
+                <<<EOT
 The <info>%command.name%</info> command generates a CRUD based on a Doctrine entity.
 
 The default command only generates the list and show actions.
@@ -66,8 +83,7 @@ Every generated file is based on a template. There are default templates but the
 You can check https://github.com/sensio/SensioGeneratorBundle/tree/master/Resources/skeleton
 in order to know the file structure of the skeleton
 EOT
-            )
-        ;
+            );
     }
 
     /**
@@ -78,7 +94,10 @@ EOT
         $questionHelper = $this->getQuestionHelper();
 
         if ($input->isInteractive()) {
-            $question = new ConfirmationQuestion($questionHelper->getQuestion('Do you confirm generation', 'yes', '?'), true);
+            $question = new ConfirmationQuestion(
+                $questionHelper->getQuestion('Do you confirm generation', 'yes', '?'),
+                true
+            );
             if (!$questionHelper->ask($input, $output, $question)) {
                 $output->writeln('<error>Command aborted</error>');
 
@@ -102,7 +121,12 @@ EOT
         try {
             $metadata = $this->getEntityMetadata('App\\Entity\\'.$entity);
         } catch (\Exception $e) {
-            throw new \RuntimeException(sprintf('Entity "%s" does not exist. Create it with the "doctrine:generate:entity" command and then execute this command again.', $entity));
+            throw new \RuntimeException(
+                sprintf(
+                    'Entity "%s" does not exist. Create it with the "doctrine:generate:entity" command and then execute this command again.',
+                    $entity
+                )
+            );
         }
 
         /** @var DoctrineCrudGenerator $generator */
@@ -111,7 +135,7 @@ EOT
 
         $output->writeln('Generating the CRUD code: <info>OK</info>');
 
-        $errors = array();
+        $errors = [];
         $runner = $questionHelper->getRunner($output, $errors);
 
         // form
@@ -122,10 +146,8 @@ EOT
 
         // routing
         $output->write('Updating the routing: ');
-        if ('annotation' != $format) {
-            $runner($this->updateRouting($questionHelper, $input, $output, $kernel, $format, $entity, $prefix));
-        } else {
-            $runner($this->updateAnnotationRouting($kernel, $entity, $prefix));
+        if ('annotation' == $format) {
+            $runner($this->updateAnnotationRouting($kernel, $entity));
         }
 
         $questionHelper->writeGeneratorSummary($output, $errors);
@@ -137,17 +159,22 @@ EOT
         $questionHelper->writeSection($output, 'Welcome to the Doctrine2 CRUD generator');
 
         // namespace
-        $output->writeln(array(
-            '',
-            'This command helps you generate CRUD controllers and templates.',
-            '',
-            'First, give the name of the existing entity for which you want to generate a CRUD',
-            '(use the shortcut notation like <comment>AcmeBlogBundle:Post</comment>)',
-            '',
-        ));
+        $output->writeln(
+            [
+                '',
+                'This command helps you generate CRUD controllers and templates.',
+                '',
+                'First, give the name of the existing entity for which you want to generate a CRUD',
+                '(use the shortcut notation like <comment>AcmeBlogBundle:Post</comment>)',
+                '',
+            ]
+        );
 
-        $question = new Question($questionHelper->getQuestion('The Entity shortcut name', $input->getArgument('entity')), $input->getArgument('entity'));
-        $question->setValidator(array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateEntityName'));
+        $question = new Question(
+            $questionHelper->getQuestion('The Entity shortcut name', $input->getArgument('entity')),
+            $input->getArgument('entity')
+        );
+        $question->setValidator(['Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateEntityName']);
 
         $autocompleter = new EntitiesAutoCompleter($this->getContainer()->get('doctrine')->getManager());
         $autocompleteEntities = $autocompleter->getSuggestions();
@@ -160,99 +187,92 @@ EOT
         try {
             $this->getEntityMetadata('App\\Entity\\'.$entity);
         } catch (\Exception $e) {
-            throw new \RuntimeException(sprintf('Entity "%s" does not exist. You may have mistyped the bundle name or maybe the entity doesn\'t exist yet (create it first with the "doctrine:generate:entity" command).', $entity));
+            throw new \RuntimeException(
+                sprintf(
+                    'Entity "%s" does not exist. You may have mistyped the bundle name or maybe the entity doesn\'t exist yet (create it first with the "doctrine:generate:entity" command).',
+                    $entity
+                )
+            );
         }
 
         // write?
         $withWrite = $input->getOption('with-write') ?: false;
-        $output->writeln(array(
-            '',
-            'By default, the generator creates two actions: list and show.',
-            'You can also ask it to generate "write" actions: new, update, and delete.',
-            '',
-        ));
-        $question = new ConfirmationQuestion($questionHelper->getQuestion('Do you want to generate the "write" actions', $withWrite ? 'yes' : 'no', '?', $withWrite), $withWrite);
+        $output->writeln(
+            [
+                '',
+                'By default, the generator creates two actions: list and show.',
+                'You can also ask it to generate "write" actions: new, update, and delete.',
+                '',
+            ]
+        );
+        $question = new ConfirmationQuestion(
+            $questionHelper->getQuestion('Do you want to generate the "write" actions', $withWrite ? 'yes' : 'no', '?'),
+            $withWrite
+        );
 
         $withWrite = $questionHelper->ask($input, $output, $question);
         $input->setOption('with-write', $withWrite);
 
         // format
         $format = $input->getOption('format');
-        $output->writeln(array(
-            '',
-            'Determine the format to use for the generated CRUD.',
-            '',
-        ));
-        $question = new Question($questionHelper->getQuestion('Configuration format (yml, xml, php, or annotation)', $format), $format);
-        $question->setValidator(array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateFormat'));
+        $output->writeln(
+            [
+                '',
+                'Determine the format to use for the generated CRUD.',
+                '',
+            ]
+        );
+        $question = new Question(
+            $questionHelper->getQuestion('Configuration format (yml, xml, php, or annotation)', $format), $format
+        );
+        $question->setValidator(['Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateFormat']);
         $format = $questionHelper->ask($input, $output, $question);
         $input->setOption('format', $format);
 
         // route prefix
         $prefix = $this->getRoutePrefix($input, $entity);
-        $output->writeln(array(
-            '',
-            'Determine the routes prefix (all the routes will be "mounted" under this',
-            'prefix: /prefix/, /prefix/new, ...).',
-            '',
-        ));
-        $prefix = $questionHelper->ask($input, $output, new Question($questionHelper->getQuestion('Routes prefix', '/'.$prefix), '/'.$prefix));
+        $output->writeln(
+            [
+                '',
+                'Determine the routes prefix (all the routes will be "mounted" under this',
+                'prefix: /prefix/, /prefix/new, ...).',
+                '',
+            ]
+        );
+        $prefix = $questionHelper->ask(
+            $input,
+            $output,
+            new Question($questionHelper->getQuestion('Routes prefix', '/'.$prefix), '/'.$prefix)
+        );
         $input->setOption('route-prefix', $prefix);
 
         // summary
-        $output->writeln(array(
-            '',
-            $this->getHelper('formatter')->formatBlock('Summary before generation', 'bg=blue;fg=white', true),
-            '',
-            sprintf('You are going to generate a CRUD controller for "<info>%s</info>"', $entity),
-            sprintf('using the "<info>%s</info>" format.', $format),
-            '',
-        ));
+        $output->writeln(
+            [
+                '',
+                $this->getHelper('formatter')->formatBlock('Summary before generation', 'bg=blue;fg=white', true),
+                '',
+                sprintf('You are going to generate a CRUD controller for "<info>%s</info>"', $entity),
+                sprintf('using the "<info>%s</info>" format.', $format),
+                '',
+            ]
+        );
     }
 
     /**
      * Tries to generate forms if they don't exist yet and if we need write operations on entities.
+     *
+     * @param KernelInterface $kernel
+     * @param string $entity
+     * @param ClassMetadataInfo $metadata
+     * @param bool $forceOverwrite
      */
     protected function generateForm($kernel, $entity, $metadata, $forceOverwrite = false)
     {
         $this->getFormGenerator($kernel)->generate($kernel, $entity, $metadata[0], $forceOverwrite);
     }
 
-    protected function updateRouting(QuestionHelper $questionHelper, InputInterface $input, OutputInterface $output, KernelInterface $kernel, $format, $entity, $prefix)
-    {
-//        $auto = true;
-//        if ($input->isInteractive()) {
-//            $question = new ConfirmationQuestion($questionHelper->getQuestion('Confirm automatic update of the Routing', 'yes', '?'), true);
-//            $auto = $questionHelper->ask($input, $output, $question);
-//        }
-//
-//        $output->write('Importing the CRUD routes: ');
-//        $this->getContainer()->get('filesystem')->mkdir($kernel->getRootDir().'/../config/routes/');
-//
-//        // first, import the routing file from the bundle's main routing.yml file
-//        $routing = new RoutingManipulator($kernel->getRootDir().'/../config/routes/'.strtolower(str_replace('\\', '_', $entity)).'.yaml');
-//        try {
-//            $ret = $auto ? $routing->addResource(strtolower(str_replace('\\', '_', $entity)), $format, '/'.$prefix, 'routes/'.strtolower(str_replace('\\', '_', $entity))) : false;
-//        } catch (\RuntimeException $exc) {
-//            $ret = false;
-//        }
-//
-//        if (!$ret) {
-//            $help = sprintf("        <comment>resource: \"./config/routes/%s.%s\"</comment>\n", strtolower(str_replace('\\', '_', $entity)), $format);
-//            $help .= sprintf("        <comment>prefix:   /%s</comment>\n", $prefix);
-//
-//            return array(
-//                '- Import the bundle\'s routing resource in the bundle routing file',
-//                sprintf('  (%s).', $kernel->getRootDir().'/../config/routes/'.strtolower(str_replace('\\', '_', $entity)).'.yaml'),
-//                '',
-//                sprintf('    <comment>%s:</comment>', $routing->getImportedResourceYamlKey(strtolower(str_replace('\\', '_', $entity)), $prefix)),
-//                $help,
-//                '',
-//            );
-//        }
-    }
-
-    protected function updateAnnotationRouting(KernelInterface $kernel, $entity, $prefix)
+    protected function updateAnnotationRouting(KernelInterface $kernel, $entity)
     {
         $rootDir = $kernel->getRootDir();
 
@@ -268,7 +288,7 @@ EOT
 
     protected function getRoutePrefix(InputInterface $input, $entity)
     {
-        $prefix = $input->getOption('route-prefix') ?: strtolower(str_replace(array('\\', '/'), '_', $entity));
+        $prefix = $input->getOption('route-prefix') ?: strtolower(str_replace(['\\', '/'], '_', $entity));
 
         if ($prefix && '/' === $prefix[0]) {
             $prefix = substr($prefix, 1);
