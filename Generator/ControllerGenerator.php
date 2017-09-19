@@ -86,7 +86,7 @@ class ControllerGenerator extends Generator
             return true;
         }
 
-        $controllerName = strtolower(str_replace('\\', '_',$controller));
+        $controllerName = strtolower(str_replace('/', '_',$controller));
 
         $file = $kernel->getRootDir().'/../config/routes/'.$controllerName.'.'.$format;
         if (file_exists($file)) {
@@ -95,7 +95,7 @@ class ControllerGenerator extends Generator
             self::mkdir($dir);
         }
 
-        $controller = NamespaceExtractor::from($kernel).'\\Controller\\'.$controller.':'.$action['name'];
+        $controller = NamespaceExtractor::from($kernel).'\\Controller\\'.str_replace('/', '\\', $controller).':'.$action['name'];
         $name = $controllerName.'_'.strtolower(preg_replace('/([A-Z])/', '_\\1', $action['basename']));
 
         if ('yaml' == $format) {
