@@ -185,9 +185,7 @@ EOT;
     {
         $data = [];
 
-        if (1 == substr_count($logicalName, '\\')) {
-            list($data['controller'], $data['template']) = explode('\\', $logicalName);
-        } elseif (1 < substr_count($logicalName, '\\')) {
+        if (1 <= substr_count($logicalName, '\\')) {
             $t = explode('\\', $logicalName);
 
             $data['template'] = array_pop($t);
