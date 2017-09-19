@@ -11,17 +11,17 @@
         }
     ],
     "require": {
-        "symfony/flex": "^1.0",
-        "symfony/framework-bundle": "^3.3",
-        "symfony/console": "^3.3",
-        "symfony/process": "^3.3",
-        "symfony/yaml": "^3.3",
-        "twig/twig": "^2.0"
+        "symfony/flex": "~1.0",
+        "symfony/framework-bundle": "~3.3",
+        "symfony/console": "~3.3",
+        "symfony/process": "~3.3",
+        "symfony/yaml": "~3.3",
+        "twig/twig": "~2.0"
     },
     "require-dev": {
-        "symfony/doctrine-bridge": "^3.3",
-        "symfony/filesystem": "^3.3",
-        "symfony/phpunit-bridge": "^3.3",
+        "symfony/doctrine-bridge": "~3.3",
+        "symfony/filesystem": "~3.3",
+        "symfony/phpunit-bridge": "~3.3",
         "doctrine/orm": "~2.4"
     },
     "autoload": {
