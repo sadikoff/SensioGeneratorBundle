@@ -11,7 +11,6 @@ class {{ entity_class }}ControllerTest extends WebTestCase
 {% endblock class_definition %}
 {
 {% block class_body %}
-    /*
 
 {%- if 'new' in actions %}
     {%- include 'crud/tests/others/full_scenario.php.twig' -%}
@@ -19,6 +18,5 @@ class {{ entity_class }}ControllerTest extends WebTestCase
     {%- include 'crud/tests/others/short_scenario.php.twig' -%}
 {%- endif %}
 
-    */
 {% endblock class_body %}
 }

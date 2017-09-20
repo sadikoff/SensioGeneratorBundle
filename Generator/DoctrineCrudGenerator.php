@@ -25,6 +25,7 @@ class DoctrineCrudGenerator extends Generator
 {
     protected $routePrefix;
     protected $routeNamePrefix;
+    /** @var  KernelInterface */
     protected $kernel;
     protected $entity;
     protected $entitySingularized;
@@ -117,7 +118,7 @@ class DoctrineCrudGenerator extends Generator
      */
     protected function generateConfiguration()
     {
-        if (!in_array($this->format, array('yml', 'xml', 'php'))) {
+        if (!in_array($this->format, array('yaml', 'xml', 'php'))) {
             return;
         }
 
@@ -139,6 +140,8 @@ class DoctrineCrudGenerator extends Generator
 
     /**
      * Generates the controller class only.
+     *
+     * @param boolean $forceOverwrite
      */
     protected function generateControllerClass($forceOverwrite)
     {
@@ -148,7 +151,7 @@ class DoctrineCrudGenerator extends Generator
         $entityClass = array_pop($parts);
         $entityNamespace = implode('\\', $parts);
 
-        $target = $entityNamespace ? sprintf(
+        $target = null !== $entityNamespace ? sprintf(
             '%s/Controller/%s/%sController.php',
             $dir,
             str_replace('\\', '/', $entityNamespace),
@@ -188,7 +191,7 @@ class DoctrineCrudGenerator extends Generator
         $entityNamespace = implode('\\', $parts);
 
         $dir = $this->kernel->getRootDir().'/Tests/Controller';
-        $target = $dir.'/'.str_replace('\\', '/', $entityNamespace).'/'.$entityClass.'ControllerTest.php';
+        $target = $dir.'/'.(null !== $entityNamespace ? str_replace('\\', '/', $entityNamespace).'/':'').$entityClass.'ControllerTest.php';
 
         $namespace = NamespaceExtractor::from($this->kernel);
 
