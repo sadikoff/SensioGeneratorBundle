@@ -105,11 +105,11 @@ class RoutingManipulator extends Manipulator
     /**
      * Adds an annotation controller resource.
      *
-     * @param string $controller
+     * @param string $entity
      *
      * @return bool
      */
-    public function addAnnotationController($controller)
+    public function addAnnotationController($entity)
     {
         $current = '';
 
@@ -119,10 +119,11 @@ class RoutingManipulator extends Manipulator
             mkdir($dir, 0777, true);
         }
 
-        $code = sprintf("%s_controller:\n", Container::underscore($controller));
+        $routeName = str_replace('\\', '_', Container::underscore($entity));
+        $controllerClass = str_replace('\\', '/', $entity).'Controller';
 
-        $code .= sprintf("    resource: \"../src/Controller/%sController.php\"\n    type:     annotation\n", $controller);
-
+        $code = sprintf("%s:\n", $routeName);
+        $code .= sprintf("    resource: \"../src/Controller/%s.php\"\n    type:     annotation\n", $controllerClass);
         $code .= "\n";
         $code .= $current;
 

@@ -279,10 +279,7 @@ EOT
         $routing = new RoutingManipulator($rootDir.'/../config/routes.yaml');
 
         if (!$routing->hasResourceInAnnotation()) {
-            $parts = explode('\\', $entity);
-            $controller = array_pop($parts);
-
-            $routing->addAnnotationController($controller);
+            $routing->addAnnotationController($entity);
         }
     }
 

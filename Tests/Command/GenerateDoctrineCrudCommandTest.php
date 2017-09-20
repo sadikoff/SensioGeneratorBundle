@@ -77,13 +77,13 @@ class GenerateDoctrineCrudCommandTest extends GenerateCommandTest
         $rootDir = $this->getKernel()->getRootDir();
 
         $routing = <<<DATA
-acme_blog:
-    resource: "@AcmeBlogBundle/Resources/config/routing.xml"
-    prefix:   /
+homepage:
+    path: /
+    defaults: { _controller: 'App\Controller\DefaultController::index' }
 DATA;
 
-        @mkdir($rootDir.'/config', 0777, true);
-        file_put_contents($rootDir.'/config/routing.yml', $routing);
+        @mkdir($rootDir.'/../config', 0777, true);
+        file_put_contents($rootDir.'/../config/routes.yaml', $routing);
 
         $options = array();
         $input = "Blog/Post\ny\nannotation\n/foobar\n";
@@ -103,7 +103,7 @@ DATA;
 
         $tester->execute($options);
 
-        $this->assertContains('acme_blog_post:', file_get_contents($rootDir.'/config/routing.yml'));
+        $this->assertContains('blog_post:', file_get_contents($rootDir.'/../config/routes.yaml'));
     }
 
     public function testCreateCrudWithAnnotationInAnnotationProject()
@@ -169,7 +169,7 @@ DATA;
         $this->setInputs($tester, $command, $input);
         $tester->execute($options);
 
-        $expected = '../src/Controller/PostController.php';
+        $expected = '../src/Controller/Blog/PostController.php';
 
         $this->assertContains($expected, file_get_contents($rootDir.'/../config/routes.yaml'));
     }
