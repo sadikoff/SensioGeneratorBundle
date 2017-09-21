@@ -165,7 +165,7 @@ EOT
                 'This command helps you generate CRUD controllers and templates.',
                 '',
                 'First, give the name of the existing entity for which you want to generate a CRUD',
-                '(use the shortcut notation like <comment>AcmeBlogBundle:Post</comment>)',
+                '(use the shortcut notation like <comment>Post</comment>)',
                 '',
             ]
         );
