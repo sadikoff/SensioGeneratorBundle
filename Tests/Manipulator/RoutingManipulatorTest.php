@@ -12,8 +12,9 @@
 namespace Sensio\Bundle\GeneratorBundle\Tests\Manipulator;
 
 use Sensio\Bundle\GeneratorBundle\Manipulator\RoutingManipulator;
+use Sensio\Bundle\GeneratorBundle\Tests\TestCase;
 
-class RoutingManipulatorTest extends \PHPUnit_Framework_TestCase
+class RoutingManipulatorTest extends TestCase
 {
     /**
      * @dataProvider getImportedResourceYamlKeys

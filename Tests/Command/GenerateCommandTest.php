@@ -11,13 +11,14 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Tests\Command;
 
+use Sensio\Bundle\GeneratorBundle\Tests\TestCase;
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Filesystem\Filesystem;
 use Sensio\Bundle\GeneratorBundle\Command\Helper\QuestionHelper;
 use Symfony\Component\DependencyInjection\Container;
 
-abstract class GenerateCommandTest extends \PHPUnit_Framework_TestCase
+abstract class GenerateCommandTest extends TestCase
 {
     protected $kernel;
 

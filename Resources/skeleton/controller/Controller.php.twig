@@ -26,7 +26,7 @@ class {{ controller }}Controller extends Controller
         {%- endif -%})
     {
         {% if 'default' == action.template -%}
-        return $this->render('{{ controller }}\{{ action.name|slice(0, -6) }}.html.{{ format.templating }}', array(
+        return $this->render('{{ controller|lower }}\{{ action.name|slice(0, -6) }}.html.{{ format.templating }}', array(
             // ...
         ));
         {%- else -%}

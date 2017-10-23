@@ -21,7 +21,7 @@
 {% endblock method_body %}
 
 {% block method_return %}
-        return $this->render('{{ entity|replace({'\\': '/'}) }}/index.html.twig', array(
+        return $this->render('{{ entity|lower|replace({'\\': '/'}) }}/index.html.twig', array(
             '{{ entity_pluralized }}' => ${{ entity_pluralized }},
         ));
 {% endblock method_return %}

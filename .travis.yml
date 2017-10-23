@@ -10,6 +10,7 @@ cache:
 
 matrix:
     include:
+        - php: 7.0
         - php: 7.1
         - php: nightly
           env: composer_extra="--prefer-lowest"
@@ -17,6 +18,3 @@ matrix:
 
 install:
     - composer $composer_extra update
-
-script:
-    - ./vendor/bin/simple-phpunit

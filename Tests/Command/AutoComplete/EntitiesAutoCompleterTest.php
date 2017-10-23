@@ -13,8 +13,9 @@ namespace Sensio\Bundle\GeneratorBundle\Tests\Command\AutoComplete;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\GeneratorBundle\Command\AutoComplete\EntitiesAutoCompleter;
+use Sensio\Bundle\GeneratorBundle\Tests\TestCase;
 
-class EntitiesAutoCompleterTest extends \PHPUnit_Framework_TestCase
+class EntitiesAutoCompleterTest extends TestCase
 {
     /**
      * @dataProvider getNamespaces

@@ -28,7 +28,7 @@
 {% endblock method_body %}
 
 {% block method_return %}
-        return $this->render('{{ entity|replace({'\\': '/'}) }}/edit.html.twig', array(
+        return $this->render('{{ entity|lower|replace({'\\': '/'}) }}/edit.html.twig', array(
             '{{ entity_singularized }}' => ${{ entity_singularized }},
             'edit_form' => $editForm->createView(),
             'delete_form' => $deleteForm->createView(),
