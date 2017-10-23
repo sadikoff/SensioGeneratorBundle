@@ -70,7 +70,7 @@ class Generator
      */
     public static function mkdir($dir, $mode = 0777, $recursive = true)
     {
-        if (!is_dir($dir)) {
+        if (!file_exists($dir)) {
             mkdir($dir, $mode, $recursive);
             self::writeln(sprintf('  <fg=green>created</> %s', self::relativizePath($dir)));
         }
