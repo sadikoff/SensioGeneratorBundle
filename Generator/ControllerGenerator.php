@@ -177,7 +177,7 @@ EOT;
     {
         $data = $this->parseLogicalTemplateName($template);
 
-        return $data['controller'].'/'.$data['template'];
+        return str_replace('\\', '/', $data['controller']).'/'.$data['template'];
     }
 
     protected function parseLogicalTemplateName($logicalName, $part = '')

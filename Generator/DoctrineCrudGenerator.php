@@ -151,7 +151,7 @@ class DoctrineCrudGenerator extends Generator
         $entityClass = array_pop($parts);
         $entityNamespace = implode('\\', $parts);
 
-        $target = null !== $entityNamespace ? sprintf(
+        $target = '' != $entityNamespace ? sprintf(
             '%s/Controller/%s/%sController.php',
             $dir,
             str_replace('\\', '/', $entityNamespace),
@@ -191,7 +191,7 @@ class DoctrineCrudGenerator extends Generator
         $entityNamespace = implode('\\', $parts);
 
         $dir = $this->kernel->getRootDir().'/Tests/Controller';
-        $target = $dir.'/'.(null !== $entityNamespace ? str_replace('\\', '/', $entityNamespace).'/':'').$entityClass.'ControllerTest.php';
+        $target = $dir.'/'.('' != $entityNamespace ? str_replace('\\', '/', $entityNamespace).'/':'').$entityClass.'ControllerTest.php';
 
         $namespace = NamespaceExtractor::from($this->kernel);
 
