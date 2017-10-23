@@ -43,10 +43,10 @@ class GenerateDoctrineEntityCommandTest extends GenerateCommandTest
             array(array(), "Blog/Post\n", array('Blog\\Post', 'annotation', array())),
             array(array('entity' => 'Blog/Post'), '', array('Blog\\Post', 'annotation', array())),
             array(array(), "Blog/Post\nyaml\n\n", array('Blog\\Post', 'yaml', array())),
-            array(array(), "Blog/Post\nyaml\ncreated_by\n\n255\nfalse\nfalse\ndescription\ntext\nfalse\ntrue\nupdated_at\ndatetimetz\ntrue\nfalse\nrating\ndecimal\n5\n3\nfalse\nfalse\n\n", array('Blog\\Post', 'yaml', array(
+            array(array(), "Blog/Post\nyaml\ncreated_by\n\n255\nfalse\nfalse\ndescription\ntext\nfalse\ntrue\nupdated_at\ndatetime\ntrue\nfalse\nrating\ndecimal\n5\n3\nfalse\nfalse\n\n", array('Blog\\Post', 'yaml', array(
                 array('fieldName' => 'createdBy', 'type' => 'string', 'length' => 255, 'columnName' => 'created_by'),
                 array('fieldName' => 'description', 'type' => 'text', 'unique' => true, 'columnName' => 'description'),
-                array('fieldName' => 'updatedAt', 'type' => 'datetimetz', 'nullable' => true, 'columnName' => 'updated_at'),
+                array('fieldName' => 'updatedAt', 'type' => 'datetime', 'nullable' => true, 'columnName' => 'updated_at'),
                 array('fieldName' => 'rating', 'type' => 'decimal', 'precision' => 5, 'scale' => 3, 'columnName' => 'rating'),
             ))),
         );
