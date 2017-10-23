@@ -65,9 +65,9 @@ class ControllerGenerator extends Generator
             }
 
             if ('twig' == $templateFormat) {
-                $this->renderFile('controller/Template.html.twig.twig', $dir.'/../templates/'.$this->parseTemplatePath($template), $params);
+                $this->renderFile('controller/Template.html.twig.twig', dirname($dir).'/templates/'.$this->parseTemplatePath($template), $params);
             } else {
-                $this->renderFile('controller/Template.html.php.twig', $dir.'/../templates/'.$this->parseTemplatePath($template), $params);
+                $this->renderFile('controller/Template.html.php.twig', dirname($dir).'/templates/'.$this->parseTemplatePath($template), $params);
             }
 
             $this->generateRouting($kernel, $controller, $actions[$i], $routeFormat);
@@ -88,10 +88,10 @@ class ControllerGenerator extends Generator
 
         $controllerName = strtolower(str_replace('/', '_',$controller));
 
-        $file = $kernel->getRootDir().'/../config/routes/'.$controllerName.'.'.$format;
+        $file = dirname($kernel->getRootDir()).'/config/routes/'.$controllerName.'.'.$format;
         if (file_exists($file)) {
             $content = file_get_contents($file);
-        } elseif (!is_dir($dir = $kernel->getRootDir().'/../config/routes')) {
+        } elseif (!is_dir($dir = dirname($kernel->getRootDir()).'/config/routes')) {
             self::mkdir($dir);
         }
 

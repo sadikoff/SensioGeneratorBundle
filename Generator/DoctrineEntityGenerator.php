@@ -84,7 +84,7 @@ class DoctrineEntityGenerator extends Generator
         } else {
             $cme = new ClassMetadataExporter();
             $exporter = $cme->getExporter('yml' == $format ? 'yaml' : $format);
-            $mappingPath = $kernel->getRootDir().'/../config/doctrine/'.str_replace('\\', '.', $entity).'.orm.'.$format;
+            $mappingPath = dirname($kernel->getRootDir()).'/config/doctrine/'.str_replace('\\', '.', $entity).'.orm.'.$format;
 
             if (file_exists($mappingPath)) {
                 throw new \RuntimeException(sprintf('Cannot generate entity when mapping "%s" already exists.', $mappingPath));

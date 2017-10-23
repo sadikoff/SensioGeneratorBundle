@@ -69,7 +69,7 @@ class DoctrineCrudGenerator extends Generator
 
         $this->generateControllerClass($forceOverwrite);
 
-        $dir = sprintf('%s/../templates/%s', $kernel->getRootDir(), strtolower($entity));
+        $dir = sprintf('%s/templates/%s', dirname($kernel->getRootDir()), strtolower($entity));
 
         if (!file_exists($dir)) {
             self::mkdir($dir);
@@ -123,8 +123,8 @@ class DoctrineCrudGenerator extends Generator
         }
 
         $target = sprintf(
-            '%s/../config/routes/%s.%s',
-            $this->kernel->getRootDir(),
+            '%s/config/routes/%s.%s',
+            dirname($this->kernel->getRootDir()),
             strtolower(str_replace('\\', '_', $this->entity)),
             $this->format
         );
