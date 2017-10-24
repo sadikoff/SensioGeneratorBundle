@@ -11,5 +11,21 @@
             <tag name="console.command" command="generate:command" />
         </service>
 
+        <service id="Sensio\Bundle\GeneratorBundle\Command\GenerateControllerCommand">
+            <tag name="console.command" command="generate:controller" />
+        </service>
+
+        <service id="Sensio\Bundle\GeneratorBundle\Command\GenerateDoctrineEntityCommand">
+            <tag name="console.command" command="doctrine:generate:entity" />
+        </service>
+
+        <service id="Sensio\Bundle\GeneratorBundle\Command\GenerateDoctrineCrudCommand">
+            <tag name="console.command" command="doctrine:generate:crud" />
+        </service>
+
+        <service id="Sensio\Bundle\GeneratorBundle\Command\GenerateDoctrineFormCommand">
+            <tag name="console.command" command="doctrine:generate:form" />
+        </service>
+
     </services>
 </container>
