@@ -28,11 +28,11 @@ class GenerateCommandCommandTest extends GenerateCommandTest
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getKernel(), $expected)
+            ->with($expected)
         ;
 
-        $tester = new CommandTester($command = $this->getCommand($generator));
-        $this->setInputs($tester, $command, $input);
+        $tester = new CommandTester($this->getCommand($generator));
+        $this->setInputs($tester, $input);
         $tester->execute($options);
     }
 
@@ -62,10 +62,10 @@ class GenerateCommandCommandTest extends GenerateCommandTest
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getKernel(), $expected)
+            ->with($expected)
         ;
 
-        $tester = new CommandTester($command = $this->getCommand($generator));
+        $tester = new CommandTester($this->getCommand($generator));
         $tester->execute($options, array('interactive' => false));
     }
 
@@ -81,11 +81,8 @@ class GenerateCommandCommandTest extends GenerateCommandTest
 
     protected function getCommand($generator)
     {
-        $command = new GenerateCommandCommand();
-
-        $command->setContainer($this->getContainer());
+        $command = new GenerateCommandCommand($generator);
         $command->setHelperSet($this->getHelperSet());
-        $command->setGenerator($generator);
 
         return $command;
     }
@@ -94,10 +91,8 @@ class GenerateCommandCommandTest extends GenerateCommandTest
     {
         $application = new Application();
 
-        $command = new GenerateCommandCommand();
-        $command->setContainer($this->getContainer());
+        $command = new GenerateCommandCommand($this->getGenerator());
         $command->setHelperSet($this->getHelperSet($input));
-        $command->setGenerator($this->getGenerator());
 
         $application->add($command);
 

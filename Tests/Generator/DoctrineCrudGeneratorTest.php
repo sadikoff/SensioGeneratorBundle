@@ -17,7 +17,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 {
     public function testGenerateYamlFull()
     {
-        $this->getGenerator()->generate($this->getKernel(), 'Post', $this->getMetadata(), 'yml', '/post', true, true);
+        $this->getGenerator()->generate('Post', 'yml', '/post', true, true);
 
         $files = array(
             'Controller/PostController.php',
@@ -54,7 +54,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
     public function testGenerateXml()
     {
-        $this->getGenerator()->generate($this->getKernel(), 'Post', $this->getMetadata(), 'xml', '/post', false, true);
+        $this->getGenerator()->generate('Post', 'xml', '/post', false, true);
 
         $files = array(
             'Controller/PostController.php',
@@ -99,7 +99,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
     public function testGenerateAnnotationWrite()
     {
-        $this->getGenerator()->generate($this->getKernel(), 'Post', $this->getMetadata(), 'annotation', '/post', true, true);
+        $this->getGenerator()->generate('Post', 'annotation', '/post', true, true);
 
         $files = array(
             'Controller/PostController.php',
@@ -137,7 +137,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
     public function testGenerateAnnotation()
     {
-        $this->getGenerator()->generate($this->getKernel(), 'Post', $this->getMetadata(), 'annotation', '/post', false, true);
+        $this->getGenerator()->generate('Post', 'annotation', '/post', false, true);
 
         $files = array(
             'Controller/PostController.php',
@@ -184,7 +184,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
     public function testGenerateNamespacedEntity()
     {
-        $this->getGenerator()->generate($this->getKernel(), 'Blog\Post', $this->getMetadata(), 'annotation', '/blog_post', true, true);
+        $this->getGenerator()->generate('Blog\Post', 'annotation', '/blog_post', true, true);
 
         $files = array(
             'Controller/Blog/PostController.php',
@@ -256,8 +256,7 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
 
     protected function getGenerator()
     {
-        $generator = new DoctrineCrudGenerator();
-        $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
+        $generator = new DoctrineCrudGenerator($this->filesystem, $this->tmpDir, $this->getRegistry());
 
         return $generator;
     }
@@ -273,6 +272,25 @@ class DoctrineCrudGeneratorTest extends GeneratorTest
         ;
 
         return $kernel;
+    }
+
+    public function getRegistry()
+    {
+        $registry = $this->getMockBuilder('Symfony\Bridge\Doctrine\RegistryInterface')->getMock();
+        $registry->expects($this->any())->method('getManager')->will($this->returnValue($this->getManager()));
+        $registry->expects($this->any())->method('getAliasNamespace')->will($this->returnValue('App\\Entity'));
+
+        return $registry;
+    }
+
+    public function getManager()
+    {
+        $manager = $this->getMockBuilder('Doctrine\ORM\EntityManagerInterface')->getMock();
+        $manager->expects($this->any())
+            ->method('getClassMetadata')
+            ->will($this->returnValue($this->getMetadata()));
+
+        return $manager;
     }
 
     public function getMetadata()

@@ -11,12 +11,11 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Command;
 
+use Sensio\Bundle\GeneratorBundle\Generator\DoctrineFormGenerator;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\Command;
-use Sensio\Bundle\GeneratorBundle\Generator\DoctrineFormGenerator;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Generates a form type class for a given Doctrine entity.
@@ -26,13 +25,13 @@ use Symfony\Component\HttpKernel\KernelInterface;
  */
 class GenerateDoctrineFormCommand extends GenerateDoctrineCommand
 {
+    protected static $defaultName = 'doctrine:generate:form';
     /**
      * @see Command
      */
     protected function configure()
     {
         $this
-            ->setName('doctrine:generate:form')
             ->setAliases(array('generate:doctrine:form'))
             ->setDescription('Generates a form type class based on a Doctrine entity')
             ->setDefinition(array(
@@ -62,24 +61,14 @@ EOT
         $entity = Validators::validateEntityName($input->getArgument('entity'));
         $entity = str_replace('/', '\\', $entity);
 
-        $metadata = $this->getContainer()->get('doctrine')->getManager()->getClassMetadata('App\\Entity\\'.$entity);
-
-        /** @var KernelInterface $kernel */
-        $kernel = $this->getContainer()->get('kernel');
-
         /** @var DoctrineFormGenerator $generator */
-        $generator = $this->getGenerator($kernel);
-        $generator->generate($kernel, $entity, $metadata);
+        $generator = $this->getGenerator();
+        $generator->generate($entity);
 
         $output->writeln(sprintf(
             'The new %s.php class file has been created under %s.',
             $generator->getClassName(),
             $generator->getClassPath()
         ));
-    }
-
-    protected function createGenerator()
-    {
-        return new DoctrineFormGenerator();
     }
 }

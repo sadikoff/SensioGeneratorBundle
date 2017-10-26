@@ -21,7 +21,7 @@ class CommandGeneratorTest extends GeneratorTest
         $commandFile = 'Command/AppFooBarCommand.php';
         $commandPath = $this->tmpDir.'/'.$commandFile;
 
-        $this->getGenerator()->generate($this->getKernel(), $commandName);
+        $this->getGenerator()->generate($commandName);
 
         $this->assertTrue(file_exists($commandPath), sprintf('%s file has been generated.', $commandFile));
 
@@ -61,22 +61,8 @@ class CommandGeneratorTest extends GeneratorTest
 
     protected function getGenerator()
     {
-        $generator = new CommandGenerator($this->filesystem);
-        $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
+        $generator = new CommandGenerator($this->filesystem, $this->tmpDir);
 
         return $generator;
-    }
-
-    protected function getKernel()
-    {
-
-        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\KernelInterface')->getMock();
-        $kernel
-            ->expects($this->any())
-            ->method('getRootDir')
-            ->will($this->returnValue($this->tmpDir))
-        ;
-
-        return $kernel;
     }
 }

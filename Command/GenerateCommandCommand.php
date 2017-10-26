@@ -11,21 +11,23 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Command;
 
+use Sensio\Bundle\GeneratorBundle\Generator\CommandGenerator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
-use Sensio\Bundle\GeneratorBundle\Generator\CommandGenerator;
 
 /**
  * Generates commands.
  *
  * @author Javier Eguiluz <javier.eguiluz@gmail.com>
  */
-class GenerateCommandCommand extends Command
+class GenerateCommandCommand extends GeneratorCommand
 {
     const MAX_ATTEMPTS = 5;
+
+    protected static $defaultName = 'generate:command';
 
     /**
      * @see Command
@@ -33,12 +35,14 @@ class GenerateCommandCommand extends Command
     public function configure()
     {
         $this
-            ->setName('generate:command')
             ->setDescription('Generates a console command')
-            ->setDefinition(array(
-                new InputArgument('name', InputArgument::OPTIONAL, 'The command\'s name (e.g. app:my-command)'),
-            ))
-            ->setHelp(<<<EOT
+            ->setDefinition(
+                [
+                    new InputArgument('name', InputArgument::OPTIONAL, 'The command\'s name (e.g. app:my-command)'),
+                ]
+            )
+            ->setHelp(
+                <<<EOT
 The <info>%command.name%</info> command helps you generate new commands. Provide the command
 name as the argument:
 
@@ -51,13 +55,12 @@ interactively. If you want to disable any user interaction, use
 Every generated file is based on a template. There are default templates but they can
 be overridden by placing custom templates in one of the following locations, by order of priority:
 
-<info>APP_PATH/Resources/SensioGeneratorBundle/skeleton/command</info>
+<info>PROJECT_PATH/templates/bundles/SensioGenerator/skeleton/command</info>
 
 You can check https://github.com/sensio/SensioGeneratorBundle/tree/master/Resources/skeleton
 in order to know the file structure of the skeleton.
 EOT
-            )
-        ;
+            );
     }
 
     public function interact(InputInterface $input, OutputInterface $output)
@@ -75,21 +78,25 @@ EOT
         if (null !== $name) {
             $output->writeln(sprintf('Command name: %s', $name));
         } else {
-            $output->writeln(array(
-                '',
-                'Now, provide the name of the command as you type it in the console',
-                '(e.g. <comment>app:my-command</comment>)',
-                '',
-            ));
+            $output->writeln(
+                [
+                    '',
+                    'Now, provide the name of the command as you type it in the console',
+                    '(e.g. <comment>app:my-command</comment>)',
+                    '',
+                ]
+            );
 
             $question = new Question($questionHelper->getQuestion('Command name', $name), $name);
-            $question->setValidator(function ($answer) {
-                if (empty($answer)) {
-                    throw new \RuntimeException('The command name cannot be empty.');
-                }
+            $question->setValidator(
+                function ($answer) {
+                    if (empty($answer)) {
+                        throw new \RuntimeException('The command name cannot be empty.');
+                    }
 
-                return $answer;
-            });
+                    return $answer;
+                }
+            );
             $question->setMaxAttempts(self::MAX_ATTEMPTS);
 
             $name = $questionHelper->ask($input, $output, $question);
@@ -97,12 +104,14 @@ EOT
         }
 
         // summary and confirmation
-        $output->writeln(array(
-            '',
-            $this->getHelper('formatter')->formatBlock('Summary before generation', 'bg=blue;fg-white', true),
-            '',
-            sprintf('You are going to generate a <info>%s</info> command', $name),
-        ));
+        $output->writeln(
+            [
+                '',
+                $this->getHelper('formatter')->formatBlock('Summary before generation', 'bg=blue;fg-white', true),
+                '',
+                sprintf('You are going to generate a <info>%s</info> command', $name),
+            ]
+        );
 
         $question = new Question($questionHelper->getQuestion('Do you confirm generation', 'yes', '?'), true);
         if (!$questionHelper->ask($input, $output, $question)) {
@@ -117,17 +126,11 @@ EOT
         $questionHelper = $this->getQuestionHelper();
         $name = $input->getArgument('name');
 
-        $kernel = $this->getContainer()->get('kernel');
+        /** @var CommandGenerator $generator */
+        $generator = $this->getGenerator();
+        $generator->generate($name);
 
-        $generator = $this->getGenerator($kernel);
-        $generator->generate($kernel, $name);
-
-        $output->writeln(sprintf('Generated the <info>%s</info> command in <info>%s</info>', $name, $kernel->getName()));
-        $questionHelper->writeGeneratorSummary($output, array());
-    }
-
-    protected function createGenerator()
-    {
-        return new CommandGenerator($this->getContainer()->get('filesystem'));
+        $output->writeln(sprintf('Generated the <info>%s</info> command', $name));
+        $questionHelper->writeGeneratorSummary($output, []);
     }
 }

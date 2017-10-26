@@ -12,6 +12,7 @@
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Generator is the base class for all generators.
@@ -20,20 +21,58 @@ use Symfony\Component\Console\Output\ConsoleOutput;
  */
 class Generator
 {
-    private $skeletonDirs;
-    private static $output;
+    /**
+     * @var Filesystem
+     */
+    private $filesystem;
 
     /**
-     * Sets an array of directories to look for templates.
-     *
-     * The directories must be sorted from the most specific to the most
-     * directory.
-     *
-     * @param array $skeletonDirs An array of skeleton dirs
+     * @var string
      */
-    public function setSkeletonDirs($skeletonDirs)
+    private $kernelRootDir;
+
+    /**
+     * @var array
+     */
+    private $skeletonDirs;
+
+    /**
+     * @var ConsoleOutput
+     */
+    private static $output;
+
+    public function __construct(Filesystem $filesystem, $kernelRootDir)
     {
-        $this->skeletonDirs = is_array($skeletonDirs) ? $skeletonDirs : array($skeletonDirs);
+        $this->filesystem = $filesystem;
+        $this->kernelRootDir = $kernelRootDir;
+
+        $this->registerSkeletonDirs();
+    }
+
+    /**
+     * @return Filesystem
+     */
+    public function getFilesystem()
+    {
+        return $this->filesystem;
+    }
+
+    public function getKernelRootDir()
+    {
+        return $this->kernelRootDir;
+    }
+
+    private function registerSkeletonDirs()
+    {
+        $dirs = [];
+
+        if (is_dir($dir = dirname($this->kernelRootDir).'/templates/bundles/SensioGenerator/skeleton')) {
+            $dirs[] = $dir;
+        }
+
+        $dirs[] = dirname(dirname(__FILE__)).'/Resources/skeleton';
+
+        $this->skeletonDirs = $dirs;
     }
 
     protected function render($template, $parameters)
@@ -50,12 +89,14 @@ class Generator
      */
     protected function getTwigEnvironment()
     {
-        return new \Twig_Environment(new \Twig_Loader_Filesystem($this->skeletonDirs), array(
-            'debug' => true,
-            'cache' => false,
-            'strict_variables' => true,
-            'autoescape' => false,
-        ));
+        return new \Twig_Environment(
+            new \Twig_Loader_Filesystem($this->skeletonDirs), [
+                'debug'            => true,
+                'cache'            => false,
+                'strict_variables' => true,
+                'autoescape'       => false,
+            ]
+        );
     }
 
     protected function renderFile($template, $target, $parameters)
@@ -101,7 +142,7 @@ class Generator
 
     private static function relativizePath($absolutePath)
     {
-        $relativePath = str_replace(getcwd(), '.', $absolutePath);
+        $relativePath = str_replace([getcwd(), '\\'], ['.', '/'], $absolutePath);
 
         return is_dir($absolutePath) ? rtrim($relativePath, '/').'/' : $relativePath;
     }

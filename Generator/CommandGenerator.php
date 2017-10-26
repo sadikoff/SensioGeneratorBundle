@@ -11,10 +11,6 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
-use Sensio\Bundle\GeneratorBundle\Extractor\NamespaceExtractor;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpKernel\KernelInterface;
-
 /**
  * Generates a Command inside a bundle.
  *
@@ -22,30 +18,21 @@ use Symfony\Component\HttpKernel\KernelInterface;
  */
 class CommandGenerator extends Generator
 {
-    private $filesystem;
-
-    public function __construct(Filesystem $filesystem)
+    public function generate($name)
     {
-        $this->filesystem = $filesystem;
-    }
-
-    public function generate(KernelInterface $kernel, $name)
-    {
-        $rootDir = $kernel->getRootdir();
-        $commandDir = $rootDir.'/Command';
+        $commandDir = $this->getKernelRootDir().'/Command';
         self::mkdir($commandDir);
 
         $commandClassName = $this->classify($name).'Command';
         $commandFile = $commandDir.'/'.$commandClassName.'.php';
-        if ($this->filesystem->exists($commandFile)) {
+        if ($this->getFilesystem()->exists($commandFile)) {
             throw new \RuntimeException(sprintf('Command "%s" already exists', $name));
         }
 
-        $parameters = array(
-            'namespace' => NamespaceExtractor::from($kernel),
+        $parameters = [
             'class_name' => $commandClassName,
-            'name' => $name,
-        );
+            'name'       => $name,
+        ];
 
         $this->renderFile('command/Command.php.twig', $commandFile, $parameters);
     }

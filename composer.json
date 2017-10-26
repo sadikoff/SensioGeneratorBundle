@@ -11,16 +11,15 @@
         }
     ],
     "require": {
-        "symfony/flex": "~1.0",
-        "symfony/framework-bundle": "^3.3|^4.0",
-        "symfony/console": "^3.3|^4.0",
-        "symfony/process": "^3.3|^4.0",
-        "symfony/yaml": "^3.3|^4.0",
-        "twig/twig": "~2.0"
+        "symfony/framework-bundle": "^3.4|^4.0",
+        "symfony/console": "^3.4|^4.0",
+        "symfony/process": "^3.4|^4.0",
+        "symfony/yaml": "^3.4|^4.0",
+        "twig/twig": "~1.34|~2.4"
     },
     "require-dev": {
-        "symfony/doctrine-bridge": "^3.3|^4.0",
-        "symfony/filesystem": "^3.3|^4.0",
+        "symfony/doctrine-bridge": "^3.4|^4.0",
+        "symfony/filesystem": "^3.4|^4.0",
         "doctrine/orm": "~2.4"
     },
     "autoload": {
@@ -35,7 +34,7 @@
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "4.0.x-dev"
+            "dev-master": "5.0.x-dev"
         }
     }
 }

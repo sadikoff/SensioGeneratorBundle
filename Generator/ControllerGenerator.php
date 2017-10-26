@@ -11,9 +11,6 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
-use Sensio\Bundle\GeneratorBundle\Extractor\NamespaceExtractor;
-use Symfony\Component\HttpKernel\KernelInterface;
-
 /**
  * Generates a Controller inside a bundle.
  *
@@ -22,9 +19,9 @@ use Symfony\Component\HttpKernel\KernelInterface;
 class ControllerGenerator extends Generator
 {
 
-    public function generate(KernelInterface $kernel, $controller, $routeFormat, $templateFormat, array $actions = array())
+    public function generate($controller, $routeFormat, $templateFormat, array $actions = array())
     {
-        $dir = $kernel->getRootDir();
+        $dir = $this->getKernelRootDir();
 
         $controller = str_replace('\\', '/', $controller);
         $controllerParts = explode('/', $controller);
@@ -37,7 +34,6 @@ class ControllerGenerator extends Generator
         }
 
         $parameters = array(
-            'namespace' => NamespaceExtractor::from($kernel),
             'sub_namespace' => false,
             'format' => array(
                 'routing' => $routeFormat,
@@ -70,7 +66,7 @@ class ControllerGenerator extends Generator
                 $this->renderFile('controller/Template.html.php.twig', dirname($dir).'/templates/'.$this->parseTemplatePath($template), $params);
             }
 
-            $this->generateRouting($kernel, $controller, $actions[$i], $routeFormat);
+            $this->generateRouting($controller, $actions[$i], $routeFormat);
         }
 
         $parameters['actions'] = $actions;
@@ -79,7 +75,7 @@ class ControllerGenerator extends Generator
         $this->renderFile('controller/ControllerTest.php.twig', $dir.'/Tests/Controller/'.$controller.'ControllerTest.php', $parameters);
     }
 
-    public function generateRouting(KernelInterface $kernel, $controller, array $action, $format)
+    public function generateRouting($controller, array $action, $format)
     {
         // annotation is generated in the templates
         if ('annotation' == $format) {
@@ -88,14 +84,16 @@ class ControllerGenerator extends Generator
 
         $controllerName = strtolower(str_replace('/', '_',$controller));
 
-        $file = dirname($kernel->getRootDir()).'/config/routes/'.$controllerName.'.'.$format;
+        $projectDir = dirname($this->getKernelRootDir());
+
+        $file = $projectDir.'/config/routes/'.$controllerName.'.'.$format;
         if (file_exists($file)) {
             $content = file_get_contents($file);
-        } elseif (!is_dir($dir = dirname($kernel->getRootDir()).'/config/routes')) {
+        } elseif (!is_dir($dir = $projectDir.'/config/routes')) {
             self::mkdir($dir);
         }
 
-        $controller = NamespaceExtractor::from($kernel).'\\Controller\\'.str_replace('/', '\\', $controller).'Controller:'.$action['name'];
+        $controller = 'App\\Controller\\'.str_replace('/', '\\', $controller).'Controller:'.$action['name'];
         $name = $controllerName.'_'.strtolower(preg_replace('/([A-Z])/', '_\\1', $action['basename']));
 
         if ('yaml' == $format) {

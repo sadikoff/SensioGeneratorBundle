@@ -35,9 +35,9 @@
 {% endblock method_body %}
 
 {% block method_return %}
-        return $this->render('{{ entity|lower|replace({'\\': '/'}) }}/new.html.twig', array(
+        return $this->render('{{ entity|lower|replace({'\\': '/'}) }}/new.html.twig', [
             '{{ entity_singularized }}' => ${{ entity_singularized }},
             'form' => $form->createView(),
-        ));
+        ]);
 {% endblock method_return %}
     }

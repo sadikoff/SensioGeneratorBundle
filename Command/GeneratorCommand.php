@@ -11,8 +11,7 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Command;
 
-use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Sensio\Bundle\GeneratorBundle\Generator\Generator;
 use Sensio\Bundle\GeneratorBundle\Command\Helper\QuestionHelper;
 
@@ -21,47 +20,23 @@ use Sensio\Bundle\GeneratorBundle\Command\Helper\QuestionHelper;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-abstract class GeneratorCommand extends ContainerAwareCommand
+abstract class GeneratorCommand extends Command
 {
     /**
      * @var Generator
      */
     private $generator;
 
-    // only useful for unit tests
-    public function setGenerator(Generator $generator)
+    public function __construct(Generator $generator)
     {
+        parent::__construct();
+
         $this->generator = $generator;
     }
 
-    abstract protected function createGenerator();
-
-    protected function getGenerator(KernelInterface $kernel = null)
+    protected function getGenerator()
     {
-        if (null === $this->generator) {
-            $this->generator = $this->createGenerator();
-            $this->generator->setSkeletonDirs($this->getSkeletonDirs($kernel));
-        }
-
         return $this->generator;
-    }
-
-    protected function getSkeletonDirs(KernelInterface $kernel = null)
-    {
-        $skeletonDirs = array();
-
-        $kernel = $this->getContainer()->get('kernel');
-
-        if (is_dir($dir = $kernel->getRootDir().'/Resources/SensioGeneratorBundle/skeleton')) {
-            $skeletonDirs[] = $dir;
-        }
-
-        $generatorRootDir = $kernel->getBundle('SensioGeneratorBundle')->getPath();
-
-        $skeletonDirs[] = $generatorRootDir.'/Resources/skeleton';
-        $skeletonDirs[] = $generatorRootDir.'/Resources';
-
-        return $skeletonDirs;
     }
 
     protected function getQuestionHelper()
@@ -83,8 +58,8 @@ abstract class GeneratorCommand extends ContainerAwareCommand
      */
     protected function makePathRelative($absolutePath)
     {
-        $projectRootDir = dirname($this->getContainer()->getParameter('kernel.root_dir'));
+        $projectRootDir = dirname($this->getGenerator()->getKernelRootDir());
 
-        return str_replace($projectRootDir.'/', '', realpath($absolutePath) ?: $absolutePath);
+        return str_replace([$projectRootDir.'/' , '\\'], ['', '/'], realpath($absolutePath) ?: $absolutePath);
     }
 }

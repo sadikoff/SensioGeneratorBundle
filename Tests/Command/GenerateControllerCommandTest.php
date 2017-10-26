@@ -30,11 +30,11 @@ class GenerateControllerCommandTest extends GenerateCommandTest
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getKernel(), $controller, $routeFormat, $templateFormat, $actions)
+            ->with($controller, $routeFormat, $templateFormat, $actions)
         ;
 
-        $tester = new CommandTester($command = $this->getCommand($generator));
-        $this->setInputs($tester, $command, $input);
+        $tester = new CommandTester($this->getCommand($generator));
+        $this->setInputs($tester, $input);
         $tester->execute($options);
     }
 
@@ -46,18 +46,18 @@ class GenerateControllerCommandTest extends GenerateCommandTest
 
             array(array(), "Post\nyaml\nphp\n", array('Post', 'yaml', 'php', array())),
 
-            array(array(), "Post\nyaml\nphp\nshowAction\n\n\ngetListAction\n/_getlist/{max}\nLists\post.html.php\n", array('Post', 'yaml', 'php', array(
+            array(array(), "Post\nyaml\nphp\nshowAction\n\n\ngetListAction\n/_getlist/{max}\nlists\post.html.php\n", array('Post', 'yaml', 'php', array(
                 'showAction' => array(
                     'name' => 'showAction',
                     'route' => '/show',
                     'placeholders' => array(),
-                    'template' => 'Post\show.html.php',
+                    'template' => 'post\show.html.php',
                 ),
                 'getListAction' => array(
                     'name' => 'getListAction',
                     'route' => '/_getlist/{max}',
                     'placeholders' => array('max'),
-                    'template' => 'Lists\post.html.php',
+                    'template' => 'lists\post.html.php',
                 ),
             ))),
 
@@ -83,10 +83,10 @@ class GenerateControllerCommandTest extends GenerateCommandTest
         $generator
             ->expects($this->once())
             ->method('generate')
-            ->with($this->getKernel(), $controller, $routeFormat, $templateFormat, $actions)
+            ->with($controller, $routeFormat, $templateFormat, $actions)
         ;
 
-        $tester = new CommandTester($command = $this->getCommand($generator));
+        $tester = new CommandTester($this->getCommand($generator));
         $tester->execute($options, array('interactive' => false));
     }
 
@@ -128,15 +128,8 @@ class GenerateControllerCommandTest extends GenerateCommandTest
 
     protected function getCommand($generator)
     {
-        $command = $this
-            ->getMockBuilder('Sensio\Bundle\GeneratorBundle\Command\GenerateControllerCommand')
-            ->setMethods(array('generateRouting'))
-            ->getMock()
-        ;
-
-        $command->setContainer($this->getContainer());
+        $command = new GenerateControllerCommand($generator);
         $command->setHelperSet($this->getHelperSet());
-        $command->setGenerator($generator);
 
         return $command;
     }
@@ -145,10 +138,8 @@ class GenerateControllerCommandTest extends GenerateCommandTest
     {
         $application = new Application();
 
-        $command = new GenerateControllerCommand();
-        $command->setContainer($this->getContainer());
+        $command = new GenerateControllerCommand($this->getGenerator());
         $command->setHelperSet($this->getHelperSet($input));
-        $command->setGenerator($this->getGenerator());
 
         $application->add($command);
 

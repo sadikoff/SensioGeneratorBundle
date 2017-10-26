@@ -22,11 +22,11 @@
 {% endblock method_body %}
 
 {% block method_return %}
-        return $this->render('{{ entity|lower|replace({'\\': '/'}) }}/show.html.twig', array(
+        return $this->render('{{ entity|lower|replace({'\\': '/'}) }}/show.html.twig', [
             '{{ entity_singularized }}' => ${{ entity_singularized }},
 {% if 'delete' in actions %}
             'delete_form' => $deleteForm->createView(),
 {% endif %}
-        ));
+        ]);
 {% endblock method_return %}
     }

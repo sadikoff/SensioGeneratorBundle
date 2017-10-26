@@ -7,24 +7,50 @@
     <services>
         <defaults public="false" />
 
+        <service id="Sensio\Bundle\GeneratorBundle\Generator\CommandGenerator">
+            <argument type="service" id="filesystem" />
+            <argument>%kernel.root_dir%</argument>
+        </service>
+
         <service id="Sensio\Bundle\GeneratorBundle\Command\GenerateCommandCommand">
+            <argument type="service" id="Sensio\Bundle\GeneratorBundle\Generator\CommandGenerator"/>
             <tag name="console.command" command="generate:command" />
         </service>
 
+        <service id="Sensio\Bundle\GeneratorBundle\Generator\ControllerGenerator">
+            <argument type="service" id="filesystem" />
+            <argument>%kernel.root_dir%</argument>
+        </service>
+
         <service id="Sensio\Bundle\GeneratorBundle\Command\GenerateControllerCommand">
+            <argument type="service" id="Sensio\Bundle\GeneratorBundle\Generator\ControllerGenerator"/>
             <tag name="console.command" command="generate:controller" />
         </service>
 
+        <service id="Sensio\Bundle\GeneratorBundle\Generator\DoctrineEntityGenerator">
+            <argument type="service" id="filesystem" />
+            <argument>%kernel.root_dir%</argument>
+            <argument type="service" id="doctrine" />
+        </service>
+
         <service id="Sensio\Bundle\GeneratorBundle\Command\GenerateDoctrineEntityCommand">
+            <argument type="service" id="Sensio\Bundle\GeneratorBundle\Generator\DoctrineEntityGenerator"/>
             <tag name="console.command" command="doctrine:generate:entity" />
+        </service>
+
+        <service id="Sensio\Bundle\GeneratorBundle\Generator\DoctrineFormGenerator">
+            <argument type="service" id="filesystem" />
+            <argument>%kernel.root_dir%</argument>
+            <argument type="service" id="doctrine" />
+        </service>
+
+        <service id="Sensio\Bundle\GeneratorBundle\Command\GenerateDoctrineFormCommand">
+            <argument type="service" id="Sensio\Bundle\GeneratorBundle\Generator\DoctrineFormGenerator"/>
+            <tag name="console.command" command="doctrine:generate:form" />
         </service>
 
         <service id="Sensio\Bundle\GeneratorBundle\Command\GenerateDoctrineCrudCommand">
             <tag name="console.command" command="doctrine:generate:crud" />
-        </service>
-
-        <service id="Sensio\Bundle\GeneratorBundle\Command\GenerateDoctrineFormCommand">
-            <tag name="console.command" command="doctrine:generate:form" />
         </service>
 
     </services>

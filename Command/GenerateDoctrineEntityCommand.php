@@ -20,7 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Console\Question\Question;
 use Doctrine\DBAL\Types\Type;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Initializes a Doctrine entity inside a bundle.
@@ -29,10 +28,11 @@ use Symfony\Component\HttpKernel\KernelInterface;
  */
 class GenerateDoctrineEntityCommand extends GenerateDoctrineCommand
 {
+    protected static $defaultName = 'doctrine:generate:entity';
+
     protected function configure()
     {
         $this
-            ->setName('doctrine:generate:entity')
             ->setAliases(array('generate:doctrine:entity'))
             ->setDescription('Generates a new Doctrine entity inside a bundle')
             ->addArgument('entity', InputArgument::OPTIONAL, 'The entity class name to initialize (shortcut notation)')
@@ -85,11 +85,9 @@ EOT
 
         $questionHelper->writeSection($output, 'Entity generation');
 
-        $kernel = $this->getContainer()->get('kernel');
-
         /** @var DoctrineEntityGenerator $generator */
         $generator = $this->getGenerator();
-        $generatorResult = $generator->generate($kernel, $entity, $format, array_values($fields));
+        $generatorResult = $generator->generate($entity, $format, array_values($fields));
 
         $output->writeln(sprintf(
             '> Generating entity class <info>%s</info>: <comment>OK!</comment>',
@@ -137,9 +135,7 @@ EOT
                 continue;
             }
 
-            $k = $this->getContainer()->get('kernel');
-
-            if (!file_exists($k->getRootDir().'/Entity/'.str_replace('\\', '/', $entity).'.php')) {
+            if (!file_exists($this->getGenerator()->getKernelRootDir().'/Entity/'.str_replace('\\', '/', $entity).'.php')) {
                 break;
             }
 
@@ -388,10 +384,5 @@ EOT
         }
 
         return $fields;
-    }
-
-    protected function createGenerator()
-    {
-        return new DoctrineEntityGenerator($this->getContainer()->get('doctrine'));
     }
 }

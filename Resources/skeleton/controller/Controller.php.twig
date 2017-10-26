@@ -1,6 +1,6 @@
 <?php
 
-namespace {{ namespace }}\Controller{{ sub_namespace ? '\\' ~ sub_namespace : '' }};
+namespace App\Controller{{ sub_namespace ? '\\' ~ sub_namespace : '' }};
 
 {% block use_statements %}
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -26,13 +26,13 @@ class {{ controller }}Controller extends Controller
         {%- endif -%})
     {
         {% if 'default' == action.template -%}
-        return $this->render('{{ controller|lower }}\{{ action.name|slice(0, -6) }}.html.{{ format.templating }}', array(
+        return $this->render('{{ controller|lower }}\{{ action.name|slice(0, -6) }}.html.{{ format.templating }}', [
             // ...
-        ));
+        ]);
         {%- else -%}
-        return $this->render('{{ action.template }}', array(
+        return $this->render('{{ action.template }}', [
             // ...
-        ));
+        ]);
         {%- endif %}
 
     }

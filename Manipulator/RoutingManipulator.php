@@ -14,7 +14,6 @@ namespace Sensio\Bundle\GeneratorBundle\Manipulator;
 use Symfony\Component\DependencyInjection\Container;
 use Sensio\Bundle\GeneratorBundle\Generator\DoctrineCrudGenerator;
 use Sensio\Bundle\GeneratorBundle\Generator\Generator;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -90,6 +89,10 @@ class RoutingManipulator extends Manipulator
         }
 
         $config = Yaml::parse(file_get_contents($this->file));
+
+        if (null === $config) {
+            return false;
+        }
 
         $search = sprintf('%s', '../src/Controller/');
 

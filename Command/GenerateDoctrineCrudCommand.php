@@ -11,16 +11,14 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Command;
 
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Sensio\Bundle\GeneratorBundle\Generator\Generator;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
-use Sensio\Bundle\GeneratorBundle\Command\AutoComplete\EntitiesAutoCompleter;
 use Sensio\Bundle\GeneratorBundle\Generator\DoctrineCrudGenerator;
 use Sensio\Bundle\GeneratorBundle\Generator\DoctrineFormGenerator;
 use Sensio\Bundle\GeneratorBundle\Manipulator\RoutingManipulator;
@@ -34,13 +32,21 @@ class GenerateDoctrineCrudCommand extends GenerateDoctrineCommand
 {
     private $formGenerator;
 
+    protected static $defaultName = 'doctrine:generate:crud';
+
+    public function __construct(Generator $generator, DoctrineFormGenerator $formGenerator)
+    {
+        parent::__construct($generator);
+
+        $this->formGenerator = $formGenerator;
+    }
+
     /**
      * @see Command
      */
     protected function configure()
     {
         $this
-            ->setName('doctrine:generate:crud')
             ->setAliases(['generate:doctrine:crud'])
             ->setDescription('Generates a CRUD based on a Doctrine entity')
             ->addArgument('entity', InputArgument::OPTIONAL, 'The entity class name to initialize (shortcut notation)')
@@ -115,23 +121,9 @@ EOT
 
         $questionHelper->writeSection($output, 'CRUD generation');
 
-        /** @var KernelInterface $kernel */
-        $kernel = $this->getContainer()->get('kernel');
-
-        try {
-            $metadata = $this->getContainer()->get('doctrine')->getManager()->getClassMetadata('App\\Entity\\'.$entity);
-        } catch (\Exception $e) {
-            throw new \RuntimeException(
-                sprintf(
-                    'Entity "%s" does not exist. Create it with the "doctrine:generate:entity" command and then execute this command again.',
-                    $entity
-                )
-            );
-        }
-
         /** @var DoctrineCrudGenerator $generator */
-        $generator = $this->getGenerator($kernel);
-        $generator->generate($kernel, $entity, $metadata, $format, $prefix, $withWrite, $forceOverwrite);
+        $generator = $this->getGenerator();
+        $generator->generate($entity, $format, $prefix, $withWrite, $forceOverwrite);
 
         $output->writeln('Generating the CRUD code: <info>OK</info>');
 
@@ -140,14 +132,14 @@ EOT
 
         // form
         if ($withWrite) {
-            $this->generateForm($kernel, $entity, $metadata, $forceOverwrite);
+            $this->generateForm($entity, $forceOverwrite);
             $output->writeln('Generating the Form code: <info>OK</info>');
         }
 
         // routing
         $output->write('Updating the routing: ');
         if ('annotation' == $format) {
-            $runner($this->updateAnnotationRouting($kernel, $entity));
+            $runner($this->updateAnnotationRouting($entity));
         }
 
         $questionHelper->writeGeneratorSummary($output, $errors);
@@ -176,24 +168,13 @@ EOT
         );
         $question->setValidator(['Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateEntityName']);
 
-        $autocompleter = new EntitiesAutoCompleter($this->getContainer()->get('doctrine')->getManager());
-        $autocompleteEntities = $autocompleter->getSuggestions();
-        $question->setAutocompleterValues($autocompleteEntities);
+        //$autocompleter = new EntitiesAutoCompleter($this->getContainer()->get('doctrine')->getManager());
+        //$autocompleteEntities = $autocompleter->getSuggestions();
+        //$question->setAutocompleterValues($autocompleteEntities);
         $entity = $questionHelper->ask($input, $output, $question);
 
         $input->setArgument('entity', $entity);
         $entity = str_replace('/', '\\', $entity);
-
-        try {
-            $this->getContainer()->get('doctrine')->getManager()->getClassMetadata('App\\Entity\\'.$entity);
-        } catch (\Exception $e) {
-            throw new \RuntimeException(
-                sprintf(
-                    'Entity "%s" does not exist. You may have mistyped the bundle name or maybe the entity doesn\'t exist yet (create it first with the "doctrine:generate:entity" command).',
-                    $entity
-                )
-            );
-        }
 
         // write?
         $withWrite = $input->getOption('with-write') ?: false;
@@ -262,21 +243,19 @@ EOT
     /**
      * Tries to generate forms if they don't exist yet and if we need write operations on entities.
      *
-     * @param KernelInterface $kernel
      * @param string $entity
-     * @param ClassMetadataInfo $metadata
      * @param bool $forceOverwrite
      */
-    protected function generateForm($kernel, $entity, $metadata, $forceOverwrite = false)
+    protected function generateForm($entity, $forceOverwrite = false)
     {
-        $this->getFormGenerator($kernel)->generate($kernel, $entity, $metadata, $forceOverwrite);
+        $this->getFormGenerator()->generate($entity, $forceOverwrite);
     }
 
-    protected function updateAnnotationRouting(KernelInterface $kernel, $entity)
+    protected function updateAnnotationRouting($entity)
     {
-        $rootDir = $kernel->getRootDir();
+        $projectDir = dirname($this->getGenerator()->getKernelRootDir());
 
-        $routing = new RoutingManipulator($rootDir.'/../config/routes.yaml');
+        $routing = new RoutingManipulator($projectDir.'/config/routes.yaml');
 
         if (!$routing->hasResourceInAnnotation()) {
             $routing->addAnnotationController($entity);
@@ -294,23 +273,8 @@ EOT
         return $prefix;
     }
 
-    protected function createGenerator()
+    protected function getFormGenerator()
     {
-        return new DoctrineCrudGenerator();
-    }
-
-    protected function getFormGenerator($kernel = null)
-    {
-        if (null === $this->formGenerator) {
-            $this->formGenerator = new DoctrineFormGenerator();
-            $this->formGenerator->setSkeletonDirs($this->getSkeletonDirs($kernel));
-        }
-
         return $this->formGenerator;
-    }
-
-    public function setFormGenerator(DoctrineFormGenerator $formGenerator)
-    {
-        $this->formGenerator = $formGenerator;
     }
 }

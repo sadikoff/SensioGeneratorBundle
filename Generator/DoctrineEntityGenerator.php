@@ -11,10 +11,8 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
-use Sensio\Bundle\GeneratorBundle\Extractor\NamespaceExtractor;
 use Sensio\Bundle\GeneratorBundle\Model\EntityGeneratorResult;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Tools\EntityGenerator;
@@ -33,13 +31,15 @@ class DoctrineEntityGenerator extends Generator
 {
     private $registry;
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(Filesystem $filesystem, $projectDir, RegistryInterface $registry)
     {
+        parent::__construct($filesystem, $projectDir);
+
         $this->registry = $registry;
     }
 
+
     /**
-     * @param KernelInterface $kernel
      * @param string          $entity
      * @param string          $format
      * @param array           $fields
@@ -49,34 +49,34 @@ class DoctrineEntityGenerator extends Generator
      * @throws \Doctrine\ORM\Mapping\MappingException
      * @throws \Doctrine\ORM\Tools\Export\ExportException
      */
-    public function generate(KernelInterface $kernel, $entity, $format, array $fields)
+    public function generate($entity, $format, array $fields)
     {
         // configure the bundle (needed if the bundle does not contain any Entities yet)
         $config = $this->registry->getManager(null)->getConfiguration();
 
-        $namespace = NamespaceExtractor::from($kernel);
+        $config->setEntityNamespaces(
+            array_merge(
+                ['App' => 'App\\Entity'],
+                $config->getEntityNamespaces()
+            )
+        );
 
-        $config->setEntityNamespaces(array_merge(
-            array($namespace => $namespace.'\\Entity'),
-            $config->getEntityNamespaces()
-        ));
-
-        $entityClass = $this->registry->getAliasNamespace($namespace).'\\'.$entity;
-        $entityPath = $kernel->getRootDir().'/Entity/'.str_replace('\\', '/', $entity).'.php';
+        $entityClass = $this->registry->getAliasNamespace('App').'\\'.$entity;
+        $entityPath = $this->getKernelRootDir().'/Entity/'.str_replace('\\', '/', $entity).'.php';
         if (file_exists($entityPath)) {
             throw new \RuntimeException(sprintf('Entity "%s" already exists.', $entityClass));
         }
 
         $class = new ClassMetadataInfo($entityClass, $config->getNamingStrategy());
         $class->customRepositoryClassName = str_replace('\\Entity\\', '\\Repository\\', $entityClass).'Repository';
-        $class->mapField(array('fieldName' => 'id', 'type' => 'integer', 'id' => true));
+        $class->mapField(['fieldName' => 'id', 'type' => 'integer', 'id' => true]);
         $class->setIdGeneratorType(ClassMetadataInfo::GENERATOR_TYPE_AUTO);
         foreach ($fields as $field) {
             $class->mapField($field);
         }
 
         $entityGenerator = $this->getEntityGenerator();
-        $class->setPrimaryTable(array('name' => Inflector::tableize(str_replace('\\', '', $entity))));
+        $class->setPrimaryTable(['name' => Inflector::tableize(str_replace('\\', '', $entity))]);
         if ('annotation' === $format) {
             $entityGenerator->setGenerateAnnotations(true);
             $entityCode = $entityGenerator->generateEntityClass($class);
@@ -84,10 +84,16 @@ class DoctrineEntityGenerator extends Generator
         } else {
             $cme = new ClassMetadataExporter();
             $exporter = $cme->getExporter('yml' == $format ? 'yaml' : $format);
-            $mappingPath = dirname($kernel->getRootDir()).'/config/doctrine/'.str_replace('\\', '.', $entity).'.orm.'.$format;
+            $mappingPath = dirname($this->getKernelRootDir()).'/config/doctrine/'.str_replace(
+                    '\\',
+                    '.',
+                    $entity
+                ).'.orm.'.$format;
 
             if (file_exists($mappingPath)) {
-                throw new \RuntimeException(sprintf('Cannot generate entity when mapping "%s" already exists.', $mappingPath));
+                throw new \RuntimeException(
+                    sprintf('Cannot generate entity when mapping "%s" already exists.', $mappingPath)
+                );
             }
 
             $mappingCode = $exporter->exportClassMetadata($class);
@@ -95,8 +101,15 @@ class DoctrineEntityGenerator extends Generator
             $entityCode = $entityGenerator->generateEntityClass($class);
         }
         $entityCode = str_replace(
-            array("@var integer\n", "@var boolean\n", "@param integer\n", "@param boolean\n", "@return integer\n", "@return boolean\n"),
-            array("@var int\n", "@var bool\n", "@param int\n", "@param bool\n", "@return int\n", "@return bool\n"),
+            [
+                "@var integer\n",
+                "@var boolean\n",
+                "@param integer\n",
+                "@param boolean\n",
+                "@return integer\n",
+                "@return boolean\n"
+            ],
+            ["@var int\n", "@var bool\n", "@param int\n", "@param bool\n", "@return int\n", "@return bool\n"],
             $entityCode
         );
 
@@ -108,8 +121,10 @@ class DoctrineEntityGenerator extends Generator
             self::dump($mappingPath, $mappingCode);
         }
 
-        $repositoryPath = $kernel->getRootDir().'/Repository/'.str_replace('\\', '/', $entity).'Repository.php';
-        $repositoryCode = $this->getRepositoryGenerator()->generateEntityRepositoryClass($class->customRepositoryClassName);
+        $repositoryPath = $this->getKernelRootDir().'/Repository/'.str_replace('\\', '/', $entity).'Repository.php';
+        $repositoryCode = $this->getRepositoryGenerator()->generateEntityRepositoryClass(
+            $class->customRepositoryClassName
+        );
 
         self::mkdir(dirname($repositoryPath));
         self::dump($repositoryPath, $repositoryCode);
@@ -151,6 +166,6 @@ class DoctrineEntityGenerator extends Generator
      */
     public function isValidPhpVariableName($name)
     {
-        return (bool) preg_match('/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/', $name, $matches);
+        return (bool)preg_match('/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/', $name, $matches);
     }
 }

@@ -11,9 +11,9 @@
 
 namespace Sensio\Bundle\GeneratorBundle\Generator;
 
-use Sensio\Bundle\GeneratorBundle\Extractor\NamespaceExtractor;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * Generates a form class based on a Doctrine entity.
@@ -25,6 +25,15 @@ class DoctrineFormGenerator extends Generator
 {
     private $className;
     private $classPath;
+
+    private $registry;
+    
+        public function __construct(Filesystem $filesystem, $projectDir, RegistryInterface $registry)
+        {
+            parent::__construct($filesystem, $projectDir);
+    
+            $this->registry = $registry;
+        }
 
     public function getClassName()
     {
@@ -39,41 +48,53 @@ class DoctrineFormGenerator extends Generator
     /**
      * Generates the entity form class.
      *
-     * @param KernelInterface   $kernel         The bundle in which to create the class
      * @param string            $entity         The entity relative class name
-     * @param ClassMetadataInfo $metadata       The entity metadata class
      * @param bool              $forceOverwrite If true, remove any existing form class before generating it again
      */
-    public function generate(KernelInterface $kernel, $entity, ClassMetadataInfo $metadata, $forceOverwrite = false)
+    public function generate($entity, $forceOverwrite = false)
     {
         $parts = explode('\\', $entity);
         $entityClass = array_pop($parts);
 
         $this->className = $entityClass.'Type';
-        $dirPath = $kernel->getRootDir().'/Form';
+        $dirPath = $this->getKernelRootDir().'/Form';
         $this->classPath = $dirPath.'/'.str_replace('\\', '/', $entity).'Type.php';
 
+        $manager = $this->registry->getManager();
+        $metadata = $manager->getClassMetadata('App\\Entity\\'.$entity);
+
         if (!$forceOverwrite && file_exists($this->classPath)) {
-            throw new \RuntimeException(sprintf('Unable to generate the %s form class as it already exists under the %s file', $this->className, $this->classPath));
+            throw new \RuntimeException(
+                sprintf(
+                    'Unable to generate the %s form class as it already exists under the %s file',
+                    $this->className,
+                    $this->classPath
+                )
+            );
         }
 
         if (count($metadata->identifier) > 1) {
-            throw new \RuntimeException('The form generator does not support entity classes with multiple primary keys.');
+            throw new \RuntimeException(
+                'The form generator does not support entity classes with multiple primary keys.'
+            );
         }
 
         $parts = explode('\\', $entity);
         array_pop($parts);
 
-        $namespace = NamespaceExtractor::from($kernel);
-
-        $this->renderFile('form/FormType.php.twig', $this->classPath, array(
-            'fields' => $this->getFieldsFromMetadata($metadata),
-            'namespace' => $namespace,
-            'entity_namespace' => implode('\\', $parts),
-            'entity_class' => $entityClass,
-            'form_class' => $this->className,
-            'form_type_name' => strtolower(str_replace('\\', '_', $namespace).($parts ? '_' : '').implode('_', $parts).'_'.substr($this->className, 0, -4)),
-        ));
+        $this->renderFile(
+            'form/FormType.php.twig',
+            $this->classPath,
+            [
+                'fields'           => $this->getFieldsFromMetadata($metadata),
+                'entity_namespace' => implode('\\', $parts),
+                'entity_class'     => $entityClass,
+                'form_class'       => $this->className,
+                'form_type_name'   => strtolower(
+                    'app'.($parts ? '_' : '').implode('_', $parts).'_'.substr($this->className, 0, -4)
+                ),
+            ]
+        );
     }
 
     /**
@@ -86,7 +107,7 @@ class DoctrineFormGenerator extends Generator
      */
     private function getFieldsFromMetadata(ClassMetadataInfo $metadata)
     {
-        $fields = (array) $metadata->fieldNames;
+        $fields = (array)$metadata->fieldNames;
 
         // Remove the primary key field if it's not managed manually
         if (!$metadata->isIdentifierNatural()) {

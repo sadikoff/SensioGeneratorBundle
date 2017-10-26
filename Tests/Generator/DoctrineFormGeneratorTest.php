@@ -73,28 +73,38 @@ class DoctrineFormGeneratorTest extends GeneratorTest
 
     private function generateForm($overwrite)
     {
-        $generator = new DoctrineFormGenerator();
-        $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
+        $generator = new DoctrineFormGenerator($this->filesystem, $this->tmpDir, $this->getRegistry());
 
-        $metadata = $this->getMockBuilder('Doctrine\ORM\Mapping\ClassMetadataInfo')->disableOriginalConstructor()->getMock();
-        $metadata->identifier = array('id');
-        $metadata->fieldMappings = array(
-            'title' => array('type' => 'string'),
-            'createdAt' => array('type' => 'date'),
-            'publishedAt' => array('type' => 'time'),
-            'updatedAt' => array('type' => 'datetime'),
-        );
-        $metadata->associationMappings = $metadata->fieldMappings;
-
-        $generator->generate($this->getKernel(), 'Post', $metadata, $overwrite);
+        $generator->generate('Post', $overwrite);
     }
 
     private function generateSubNamespacedEntityForm($overwrite)
     {
-        $generator = new DoctrineFormGenerator();
-        $generator->setSkeletonDirs(__DIR__.'/../../Resources/skeleton');
+        $generator = new DoctrineFormGenerator($this->filesystem, $this->tmpDir, $this->getRegistry());
 
+        $generator->generate('Blog\Post', $overwrite);
+    }
 
+    public function getRegistry()
+    {
+        $registry = $this->getMockBuilder('Symfony\Bridge\Doctrine\RegistryInterface')->getMock();
+        $registry->expects($this->any())->method('getManager')->will($this->returnValue($this->getManager()));
+
+        return $registry;
+    }
+
+    public function getManager()
+    {
+        $manager = $this->getMockBuilder('Doctrine\ORM\EntityManagerInterface')->getMock();
+        $manager->expects($this->any())
+            ->method('getClassMetadata')
+            ->will($this->returnValue($this->getMetadata()));
+
+        return $manager;
+    }
+
+    public function getMetadata()
+    {
         $metadata = $this->getMockBuilder('Doctrine\ORM\Mapping\ClassMetadataInfo')->disableOriginalConstructor()->getMock();
         $metadata->identifier = array('id');
         $metadata->fieldMappings = array(
@@ -105,19 +115,6 @@ class DoctrineFormGeneratorTest extends GeneratorTest
         );
         $metadata->associationMappings = $metadata->fieldMappings;
 
-        $generator->generate($this->getKernel(), 'Blog\Post', $metadata, $overwrite);
-    }
-
-    protected function getKernel()
-    {
-
-        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\KernelInterface')->getMock();
-        $kernel
-            ->expects($this->any())
-            ->method('getRootDir')
-            ->will($this->returnValue($this->tmpDir))
-        ;
-
-        return $kernel;
+        return $metadata;
     }
 }
