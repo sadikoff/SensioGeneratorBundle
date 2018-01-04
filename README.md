@@ -1,6 +1,8 @@
 SensioGeneratorBundle
 =====================
 
+> DEPRECATED! Soon will be new bundle for Symfony 3.4|4.0 (flex)
+
 The `SensioGeneratorBundle` extends the default Symfony command line
 interface by providing new interactive and intuitive commands for generating
 code skeletons like bundles, form classes, or CRUD controllers based on a
